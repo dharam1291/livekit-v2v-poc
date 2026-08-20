@@ -1,0 +1,91 @@
+README.md
+  s_22e5c2558f7718::t_6c111049697007 111,117
+  s_22e5c2558f7718::t_80c4aefca88d83 25-41,44-46,49,51-52,142,146
+  s_b7278bbb7b619f::t_31ec5bc983445c 100
+  s_22e5c2558f7718::t_2b4c81b109487e 50
+  s_22e5c2558f7718::t_b37fe1190e7c23 140-141
+  s_22e5c2558f7718::t_84d87ce2697333 143-145
+web/components/app/view-controller.tsx
+  s_22e5c2558f7718::t_974a980c852371 3,7,23-24,40,91,107-118,120-122,124-142,144
+  s_b7278bbb7b619f::t_47bf7f9c965d39 123
+agent/tests/test_agent.py
+  s_b7278bbb7b619f::t_0004a2e719032f 63-64
+  s_b7278bbb7b619f::t_84fc8dc8e1ad01 61-62,65-69
+  s_b7278bbb7b619f::t_1ad892c963bd05 13-26
+  s_b7278bbb7b619f::t_1d156fdf2edda4 2,4,6,12,27-28
+  s_b7278bbb7b619f::t_96c178e607b1ba 29-30
+agent/.env.example
+  s_22e5c2558f7718::t_526be1d7ab0088 32-34
+  s_22e5c2558f7718::t_6c63048c621b5b 9-25
+start_app.sh
+  s_22e5c2558f7718::t_d1f2474d4c191b 262-263,265-268
+  s_22e5c2558f7718::t_62d3bda888dafc 120-122,124,133-135
+  s_22e5c2558f7718::t_941a9a80763214 141,146,155,162-167,170-172,175-176,179-182,184,227-228
+  s_b7278bbb7b619f::t_c35fa31d99edbe 270-274
+  s_22e5c2558f7718::t_6114e33cf9cea3 339-340
+  s_22e5c2558f7718::t_dd4115284e05f4 25-37
+  s_22e5c2558f7718::t_f072945fa80922 142-145,147-152,156-161,168-169
+  s_22e5c2558f7718::t_0ac3aa8f5d1c48 309,314-320,326-331
+  s_22e5c2558f7718::t_3e4e952b621b99 46,49,55-76,78,82-88,93-98,100-115
+  s_b7278bbb7b619f::t_26b59ae85f2c6e 19-20
+  s_22e5c2558f7718::t_a1d87f041e01fa 173-174,177-178,183,185-226,229-233
+  s_b7278bbb7b619f::t_013e924ca01215 355-358,363,367,371,376-388,400-402,404
+  s_22e5c2558f7718::t_887f3731754178 365
+specs/001-livekit-v2v/plan.md
+  s_22e5c2558f7718::t_f1cdd99525d5d7 76,87
+web/next.config.ts
+  s_22e5c2558f7718::t_7946d75a68fc5d 2-5,8-11
+agent/src/adapters/speech_llm.py
+  s_22e5c2558f7718::t_aef753c4e0ce12 1,5-6,14,43-85
+  s_b7278bbb7b619f::t_ce1dedf65dc167 7-8,10,17-32,89-95
+  s_b7278bbb7b619f::t_d5eafe52e02d10 15-16
+specs/001-livekit-v2v/quickstart.md
+  s_22e5c2558f7718::t_0a3865b3274bc1 26-27
+  s_22e5c2558f7718::t_9217c46a0c2ee8 6
+web/components/app/welcome-view.tsx
+  s_b7278bbb7b619f::t_454e18efa287df 38-39,42-49,54,59-69,75,80-82,84
+web/.env.example
+  s_22e5c2558f7718::t_25beb75eacedd9 9-11
+web/components/agents-ui/blocks/agent-session-view-01/components/agent-session-block.tsx
+  s_b7278bbb7b619f::t_993fbc24de01e1 228-233
+  s_b7278bbb7b619f::t_9909bcaf3eb798 187-193,197,203
+  s_b7278bbb7b619f::t_b71eda9c43a74a 194-196,198-202
+agent/src/adapters/config.py
+  s_22e5c2558f7718::t_94be129b708845 12,14-18,28-34,37,39-46
+web/components/app/app.tsx
+  s_22e5c2558f7718::t_db87eab02d8ce6 31-33
+web/app/api/token/route.ts
+  s_22e5c2558f7718::t_8c754d253bb31d 3
+  s_22e5c2558f7718::t_d2b32f46a874ac 39-46,51-53,55
+  s_22e5c2558f7718::t_1e6901acc2887e 54
+  s_22e5c2558f7718::t_0be0de29680b42 56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8d0de03f3a565d399e339cbed94881c2b3146c32",
+  "prompts": {},
+  "humans": {
+    "h_43898d1486641f": {
+      "author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_22e5c2558f7718": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "42e71be6-abb5-4aaf-9921-6d9d992f9522",
+        "model": "auto-smart"
+      },
+      "human_author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    },
+    "s_b7278bbb7b619f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "062cbd90-73be-4b5b-a344-c53e837dec30",
+        "model": "auto-smart"
+      },
+      "human_author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    }
+  }
+}
