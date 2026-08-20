@@ -35,39 +35,53 @@ export const WelcomeView = ({
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
   return (
-    <div ref={ref}>
-      <section className="bg-background flex flex-col items-center justify-center text-center">
+    <div ref={ref} className="px-6">
+      <section className="bg-background mx-auto flex max-w-md flex-col items-center justify-center text-center">
         <WelcomeImage />
 
-        <p className="text-muted-foreground mb-2 font-mono text-xs tracking-wider uppercase">
+        <h1 className="text-foreground mb-1 text-xl font-semibold tracking-tight">
+          LiveKit Voice POC
+        </h1>
+
+        <p
+          className="text-muted-foreground mb-4 font-mono text-xs tracking-wider uppercase"
+          aria-live="polite"
+        >
           Status: {connectionLabel}
         </p>
 
         {failureReason && (
-          <p className="text-destructive mb-2 max-w-prose text-sm" role="alert">
+          <p className="text-destructive mb-4 max-w-prose text-sm" role="alert">
             {failureReason}
           </p>
         )}
 
-        <p className="text-foreground max-w-prose pt-1 leading-6 font-medium">
-          Local LiveKit V2V POC — connect to a room, talk with the agent, then disconnect
-        </p>
+        <ol className="text-muted-foreground mb-6 w-full list-decimal space-y-2 pl-5 text-left text-sm leading-6">
+          <li>
+            Click <span className="text-foreground font-medium">{startButtonText}</span> and allow
+            the microphone.
+          </li>
+          <li>Wait for the agent greeting (you should hear voice + see text).</li>
+          <li>Speak naturally — replies appear in the transcript panel.</li>
+          <li>
+            Press <span className="text-foreground font-medium">End call</span> when finished.
+          </li>
+        </ol>
 
         <Button
           size="lg"
           onClick={onStartCall}
           disabled={isConnecting}
-          className="mt-6 w-64 rounded-full font-mono text-xs font-bold tracking-wider uppercase"
+          className="w-full max-w-xs rounded-full font-mono text-xs font-bold tracking-wider uppercase"
         >
           {isConnecting ? 'Connecting…' : startButtonText}
         </Button>
-      </section>
 
-      <div className="fixed bottom-5 left-0 flex w-full items-center justify-center">
-        <p className="text-muted-foreground max-w-prose pt-1 text-xs leading-5 font-normal text-pretty md:text-sm">
-          Requires local Docker (LiveKit + Speaches/Whisper) and OPENAI_API_KEY for GPT. See README.
+        <p className="text-muted-foreground mt-6 max-w-prose text-xs leading-5">
+          Agent logs stream in the <code className="font-mono">./start_app.sh</code> terminal (also{' '}
+          <code className="font-mono">.run/agent.log</code>).
         </p>
-      </div>
+      </section>
     </div>
   );
 };

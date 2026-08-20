@@ -22,14 +22,34 @@ That script:
 
 Press **Ctrl+C** to stop the agent and web UI. Docker stays up until you run `docker compose down`.
 
-### First-time API key
+### First-time API key / LLM
+
+Edit `agent/.env.local` (created from `agent/.env.example` on first run).
+
+**Azure / PowerProxy** (matches a curl like  
+`.../openai/deployments/gpt-5.4/chat/completions?api-version=...` with `api-key` header):
 
 ```bash
-cp .env.example agent/.env.local
-# edit agent/.env.local and set OPENAI_API_KEY=sk-...
+LLM_PROVIDER=azure
+AZURE_OPENAI_ENDPOINT=https://powerproxy.dev.oneai.yo-digital.com
+AZURE_OPENAI_DEPLOYMENT=gpt-5.4
+OPENAI_MODEL=gpt-5.4
+OPENAI_API_VERSION=<your-api-version>
+AZURE_OPENAI_API_KEY=<your-api-key>
 ```
 
-Do not commit real keys. `.env.local` files are gitignored.
+**Public OpenAI** instead:
+
+```bash
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Do not commit real keys. Templates:
+
+- `agent/.env.example` — LiveKit, Speaches, LLM
+- `web/.env.example` — LiveKit + `AGENT_NAME` only
 
 ---
 
@@ -77,7 +97,7 @@ docker compose down          # stop LiveKit + Speaches
 docker compose down -v       # also clear Speaches/Whisper cache
 ```
 
-Logs while running: `.run/agent.log`, `.run/web.log`
+Logs while running stream in the `./start_app.sh` terminal and are also written to `.run/agent.log` / `.run/web.log`.
 
 ---
 
@@ -87,13 +107,14 @@ Logs while running: `.run/agent.log`, `.run/web.log`
 livekit-v2v-poc/
   start_app.sh           # ← only command you need to start everything
   docker-compose.yml     # LiveKit + Speaches
-  .env.example           # documented env names (no secrets)
   agent/                 # LiveKit Agents + LangGraph
+    .env.example         # agent env template
     src/agent.py
     src/graph/
     src/tools/
     src/adapters/
   web/                   # Next.js testing UI
+    .env.example         # web env template
   specs/                 # Spec Kit feature docs
   .specify/              # Constitution + Spec Kit
 ```
@@ -116,3 +137,10 @@ Governance: [`.specify/memory/constitution.md`](./.specify/memory/constitution.m
 - No LiveKit Cloud, no Ollama for this POC.
 - `--node-ip 127.0.0.1` on LiveKit makes browser WebRTC work on the same machine.
 - `start_app.sh` is the supported way to run; avoid starting agent/web/docker in separate terminals unless debugging.
+- Speaches models install with `POST /v1/models/<model_id>` (not a JSON body). If downloads fail, run manually:
+
+```bash
+curl -X POST "http://localhost:8000/v1/models/Systran/faster-whisper-small"
+curl -X POST "http://localhost:8000/v1/models/speaches-ai/Kokoro-82M-v1.0-ONNX"
+curl -s "http://localhost:8000/v1/models"
+```

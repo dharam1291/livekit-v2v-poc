@@ -3,7 +3,7 @@
 **Feature**: `001-livekit-v2v`  
 **Date**: 2026-08-20
 
-Use this guide to prove the feature end to end. Prefer documented env **names** from `.env.example`; do not commit secret values.
+Use this guide to prove the feature end to end. Prefer documented env **names** from `agent/.env.example` and `web/.env.example`; do not commit secret values.
 
 ## Prerequisites
 
@@ -23,8 +23,8 @@ docker compose ps
 Configure local env files from examples (edit secrets yourself; agents should not open them unless you grant access):
 
 ```bash
-cp .env.example agent/.env.local
-cp .env.example web/.env.local   # or web/.env.example → web/.env.local per project docs
+cp agent/.env.example agent/.env.local
+cp web/.env.example web/.env.local
 # Set OPENAI_API_KEY in agent/.env.local
 ```
 

@@ -28,7 +28,9 @@ interface AppProps {
 
 export function App({ appConfig }: AppProps) {
   const tokenSource = useMemo(() => {
-    return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
+    const sandboxEndpoint = process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT?.trim();
+    // Empty string in .env must NOT select the sandbox path (causes Failed to fetch).
+    return sandboxEndpoint
       ? getSandboxTokenSource(appConfig)
       : TokenSource.endpoint('/api/token');
   }, [appConfig]);

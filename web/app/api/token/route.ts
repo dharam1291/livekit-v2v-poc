@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AccessToken, type AccessTokenOptions, type VideoGrant } from 'livekit-server-sdk';
-import { RoomConfiguration } from '@livekit/protocol';
+import { RoomAgentDispatch, RoomConfiguration } from '@livekit/protocol';
 
 type ConnectionDetails = {
   serverUrl: string;
@@ -36,11 +36,23 @@ export async function POST(req: Request) {
       throw new Error('LIVEKIT_API_SECRET is not defined');
     }
 
-    // Parse room config from request body.
-    const body = await req.json();
+    // Parse room config from request body (TokenSource may send proto JSON).
+    let body: Record<string, unknown> = {};
+    try {
+      body = (await req.json()) as Record<string, unknown>;
+    } catch {
+      body = {};
+    }
+
     const roomConfig = body?.room_config
       ? RoomConfiguration.fromJson(body.room_config, { ignoreUnknownFields: true })
       : new RoomConfiguration();
+
+    // Ensure agent dispatch when client didn't send agents (local POC).
+    const agentName = process.env.AGENT_NAME || 'v2v-poc-agent';
+    if (!roomConfig.agents || roomConfig.agents.length === 0) {
+      roomConfig.agents.push(new RoomAgentDispatch({ agentName }));
+    }
 
     // Generate participant token
     const participantName = 'user';

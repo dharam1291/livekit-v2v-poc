@@ -184,6 +184,23 @@ export function AgentSessionView_01({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { state: agentState } = useAgent();
 
+  const agentStateLabel =
+    agentState === 'listening'
+      ? 'Listening — speak now'
+      : agentState === 'thinking'
+        ? 'Thinking…'
+        : agentState === 'speaking'
+          ? 'Agent speaking'
+          : agentState === 'connecting' ||
+              agentState === 'initializing' ||
+              agentState === 'pre-connect-buffering'
+            ? 'Agent joining…'
+            : agentState === 'idle'
+              ? 'Connected — waiting'
+              : agentState === 'failed'
+                ? 'Agent failed'
+                : 'In call';
+
   const controls: AgentControlBarControls = {
     leave: true,
     microphone: true,
@@ -208,6 +225,12 @@ export function AgentSessionView_01({
       {...props}
     >
       <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
+      <p
+        className="text-muted-foreground absolute inset-x-0 top-3 z-20 text-center font-mono text-xs tracking-wider uppercase"
+        aria-live="polite"
+      >
+        {agentStateLabel}
+      </p>
       {/* transcript */}
       <AnimatePresence>
         {isChatOpen && (

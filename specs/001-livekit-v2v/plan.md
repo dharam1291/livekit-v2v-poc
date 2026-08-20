@@ -69,11 +69,11 @@ specs/001-livekit-v2v/
 ```text
 livekit-v2v-poc/
 ├── docker-compose.yml          # LiveKit server + Speaches
-├── .env.example                # Documented env var names only
 ├── README.md                   # Runbook + specs index
 ├── specs/                      # Spec Kit feature docs (+ README index)
 │   └── 001-livekit-v2v/
 ├── agent/
+│   ├── .env.example            # Agent env template (no secrets)
 │   ├── pyproject.toml
 │   ├── src/
 │   │   ├── agent.py            # LiveKit Agents entrypoint (thin)
@@ -84,6 +84,7 @@ livekit-v2v-poc/
 │       ├── unit/
 │       └── integration/
 └── web/
+    ├── .env.example            # Web env template (no secrets)
     ├── app/                    # Next.js routes + token API
     ├── components/app/         # Welcome + session views
     ├── hooks/                  # Session/status/error helpers
