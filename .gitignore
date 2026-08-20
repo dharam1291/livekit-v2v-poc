@@ -1,0 +1,25 @@
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Python
+agent/.venv/
+agent/**/__pycache__/
+agent/**/*.pyc
+agent/.pytest_cache/
+agent/.ruff_cache/
+
+# Node / Next
+web/node_modules/
+web/.next/
+web/out/
+web/.turbo/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Local runtime (start_app.sh)
+.run/

@@ -1,0 +1,25 @@
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit-v2v-server
+    command: --dev --bind 0.0.0.0 --node-ip 127.0.0.1
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    restart: unless-stopped
+
+  # OpenAI-compatible Whisper STT + Kokoro TTS (https://speaches.ai)
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    container_name: livekit-v2v-speaches
+    ports:
+      - "8000:8000"
+    volumes:
+      - speaches_cache:/home/ubuntu/.cache/huggingface
+    environment:
+      WHISPER_MODEL: Systran/faster-whisper-small
+    restart: unless-stopped
+
+volumes:
+  speaches_cache:
