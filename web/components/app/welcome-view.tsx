@@ -1,22 +1,8 @@
-import { Button } from '@/components/ui/button';
+'use client';
 
-function WelcomeImage() {
-  return (
-    <svg
-      width="64"
-      height="64"
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="text-fg0 mb-4 size-16"
-    >
-      <path
-        d="M15 24V40C15 40.7957 14.6839 41.5587 14.1213 42.1213C13.5587 42.6839 12.7956 43 12 43C11.2044 43 10.4413 42.6839 9.87868 42.1213C9.31607 41.5587 9 40.7957 9 40V24C9 23.2044 9.31607 22.4413 9.87868 21.8787C10.4413 21.3161 11.2044 21 12 21C12.7956 21 13.5587 21.3161 14.1213 21.8787C14.6839 22.4413 15 23.2044 15 24ZM22 5C21.2044 5 20.4413 5.31607 19.8787 5.87868C19.3161 6.44129 19 7.20435 19 8V56C19 56.7957 19.3161 57.5587 19.8787 58.1213C20.4413 58.6839 21.2044 59 22 59C22.7956 59 23.5587 58.6839 24.1213 58.1213C24.6839 57.5587 25 56.7957 25 56V8C25 7.20435 24.6839 6.44129 24.1213 5.87868C23.5587 5.31607 22.7956 5 22 5ZM32 13C31.2044 13 30.4413 13.3161 29.8787 13.8787C29.3161 14.4413 29 15.2044 29 16V48C29 48.7957 29.3161 49.5587 29.8787 50.1213C30.4413 50.6839 31.2044 51 32 51C32.7956 51 33.5587 50.6839 34.1213 50.1213C34.6839 49.5587 35 48.7957 35 48V16C35 15.2044 34.6839 14.4413 34.1213 13.8787C33.5587 13.3161 32.7956 13 32 13ZM42 21C41.2043 21 40.4413 21.3161 39.8787 21.8787C39.3161 22.4413 39 23.2044 39 24V40C39 40.7957 39.3161 41.5587 39.8787 42.1213C40.4413 42.6839 41.2043 43 42 43C42.7957 43 43.5587 42.6839 44.1213 42.1213C44.6839 41.5587 45 40.7957 45 40V24C45 23.2044 44.6839 22.4413 44.1213 21.8787C43.5587 21.3161 42.7957 21 42 21ZM52 17C51.2043 17 50.4413 17.3161 49.8787 17.8787C49.3161 18.4413 49 19.2044 49 20V44C49 44.7957 49.3161 45.5587 49.8787 46.1213C50.4413 46.6839 51.2043 47 52 47C52.7957 47 53.5587 46.6839 54.1213 46.1213C54.6839 45.5587 55 44.7957 55 44V20C55 19.2044 54.6839 18.4413 54.1213 17.8787C53.5587 17.3161 52.7957 17 52 17Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
+import { Button } from '@/components/ui/button';
+import { ConversationHistory } from '@/components/app/conversation-history';
+import type { AvatarGender, SessionLanguage, SessionPersona } from '@/lib/session-persona';
 
 interface WelcomeViewProps {
   startButtonText: string;
@@ -24,6 +10,10 @@ interface WelcomeViewProps {
   connectionLabel?: string;
   isConnecting?: boolean;
   failureReason?: string | null;
+  persona: SessionPersona;
+  onPersonaChange: (persona: SessionPersona) => void;
+  historyRefreshKey?: number;
+  storageWarning?: string | null;
 }
 
 export const WelcomeView = ({
@@ -32,16 +22,39 @@ export const WelcomeView = ({
   connectionLabel = 'Disconnected',
   isConnecting = false,
   failureReason = null,
+  persona,
+  onPersonaChange,
+  historyRefreshKey = 0,
+  storageWarning = null,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
-  return (
-    <div ref={ref} className="px-6">
-      <section className="bg-background mx-auto flex max-w-md flex-col items-center justify-center text-center">
-        <WelcomeImage />
+  const setGender = (avatarGender: AvatarGender) =>
+    onPersonaChange({ ...persona, avatarGender });
+  const setLanguage = (sessionLanguage: SessionLanguage) =>
+    onPersonaChange({ ...persona, sessionLanguage });
 
-        <h1 className="text-foreground mb-1 text-xl font-semibold tracking-tight">
-          LiveKit Voice POC
+  return (
+    <div ref={ref} className="relative min-h-svh w-full overflow-y-auto">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(56,120,180,0.18),_transparent_55%),radial-gradient(ellipse_at_bottom_right,_rgba(180,90,60,0.12),_transparent_50%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(to_right,rgba(0,0,0,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:28px_28px] dark:opacity-[0.2] dark:[background-image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)]"
+      />
+
+      <section className="relative mx-auto flex max-w-lg flex-col items-center px-6 py-16 text-center">
+        <p className="text-muted-foreground mb-3 font-mono text-[10px] tracking-[0.25em] uppercase">
+          Voice · Live · Local
+        </p>
+        <h1 className="text-foreground mb-3 text-4xl font-semibold tracking-tight sm:text-5xl">
+          LiveKit Voice
         </h1>
+        <p className="text-muted-foreground mb-8 max-w-md text-sm leading-6">
+          Talk with a local agent, watch the transcript beside the call, and reopen earlier
+          conversations from this device.
+        </p>
 
         <p
           className="text-muted-foreground mb-4 font-mono text-xs tracking-wider uppercase"
@@ -56,17 +69,61 @@ export const WelcomeView = ({
           </p>
         )}
 
-        <ol className="text-muted-foreground mb-6 w-full list-decimal space-y-2 pl-5 text-left text-sm leading-6">
-          <li>
-            Click <span className="text-foreground font-medium">{startButtonText}</span> and allow
-            the microphone.
-          </li>
-          <li>Wait for the agent greeting (you should hear voice + see text).</li>
-          <li>Speak naturally — replies appear in the transcript panel.</li>
-          <li>
-            Press <span className="text-foreground font-medium">End call</span> when finished.
-          </li>
-        </ol>
+        {storageWarning && (
+          <p className="text-amber-700 dark:text-amber-400 mb-4 max-w-prose text-sm" role="status">
+            {storageWarning}
+          </p>
+        )}
+
+        <div className="mb-6 grid w-full max-w-md gap-4 text-left">
+          <fieldset>
+            <legend className="mb-2 font-mono text-[10px] tracking-wider uppercase">
+              Agent avatar
+            </legend>
+            <div className="flex gap-2">
+              {(['female', 'male'] as AvatarGender[]).map((g) => (
+                <Button
+                  key={g}
+                  type="button"
+                  variant={persona.avatarGender === g ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1 capitalize"
+                  onClick={() => setGender(g)}
+                  disabled={isConnecting}
+                >
+                  {g}
+                </Button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="mb-2 font-mono text-[10px] tracking-wider uppercase">
+              Language
+            </legend>
+            <div className="flex gap-2">
+              {(
+                [
+                  { code: 'en', label: 'English' },
+                  { code: 'hi', label: 'Hindi' },
+                  { code: 'es', label: 'Spanish' },
+                ] as const
+              ).map((lang) => (
+                <Button
+                  key={lang.code}
+                  type="button"
+                  variant={persona.sessionLanguage === lang.code ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setLanguage(lang.code)}
+                  disabled={isConnecting}
+                >
+                  {lang.label}
+                </Button>
+              ))}
+            </div>
+          </fieldset>
+        </div>
 
         <Button
           size="lg"
@@ -78,9 +135,11 @@ export const WelcomeView = ({
         </Button>
 
         <p className="text-muted-foreground mt-6 max-w-prose text-xs leading-5">
-          Agent logs stream in the <code className="font-mono">./start_app.sh</code> terminal (also{' '}
-          <code className="font-mono">.run/agent.log</code>).
+          Allow the microphone when prompted. Agent logs stream in the{' '}
+          <code className="font-mono">./start_app.sh</code> terminal.
         </p>
+
+        <ConversationHistory refreshKey={historyRefreshKey} />
       </section>
     </div>
   );

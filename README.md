@@ -79,12 +79,13 @@ Whisper is **not** installed with pip/brew. Speaches downloads model weights int
 ## Test the call
 
 1. Open **http://localhost:3000**
-2. Status **Disconnected** → **Connect** (allow microphone)
-3. Hear the agent greeting; speak; check live transcripts
-4. Optional: “What’s the weather in London?”
-5. **End call** → **Disconnected**; connect again without restarting the app
+2. Choose **avatar** (male/female) and **language**, then **Connect** (allow microphone)
+3. Hear the agent greeting (general helper, not weather-only); speak; watch the **right-side transcript** and speaking avatar
+4. While the agent thinks, you should see wait feedback (and optionally hear a soft waiting tone)
+5. Optional: “What’s the weather in London?” still works; out-of-scope asks get a clear spoken refusal
+6. **End call** → conversation appears under **Previous conversations** on the home page
 
-More scenarios: [specs/001-livekit-v2v/quickstart.md](./specs/001-livekit-v2v/quickstart.md)
+More scenarios: [specs/002-ux-general-agent/quickstart.md](./specs/002-ux-general-agent/quickstart.md) · [specs/001-livekit-v2v/quickstart.md](./specs/001-livekit-v2v/quickstart.md)
 
 ---
 
@@ -126,6 +127,7 @@ livekit-v2v-poc/
 | ID | Feature | Spec | Plan | Tasks |
 |----|---------|------|------|-------|
 | `001-livekit-v2v` | LiveKit voice-to-voice agent testing POC | [spec.md](./specs/001-livekit-v2v/spec.md) | [plan.md](./specs/001-livekit-v2v/plan.md) | [tasks.md](./specs/001-livekit-v2v/tasks.md) |
+| `002-ux-general-agent` | Conversation UX and general agent answers | [spec.md](./specs/002-ux-general-agent/spec.md) | [plan.md](./specs/002-ux-general-agent/plan.md) | [tasks.md](./specs/002-ux-general-agent/tasks.md) |
 
 Full index: **[specs/README.md](./specs/README.md)**  
 Governance: [`.specify/memory/constitution.md`](./.specify/memory/constitution.md)

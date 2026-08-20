@@ -6,13 +6,14 @@ Governance: [`.specify/memory/constitution.md`](../.specify/memory/constitution.
 | ID | Feature | Status | Spec | Plan | Tasks |
 |----|---------|--------|------|------|-------|
 | `001-livekit-v2v` | LiveKit voice-to-voice agent testing POC | Draft / planned | [spec.md](./001-livekit-v2v/spec.md) | [plan.md](./001-livekit-v2v/plan.md) | [tasks.md](./001-livekit-v2v/tasks.md) |
+| `002-ux-general-agent` | Conversation UX and general agent answers | Implemented | [spec.md](./002-ux-general-agent/spec.md) | [plan.md](./002-ux-general-agent/plan.md) | [tasks.md](./002-ux-general-agent/tasks.md) |
 
 ## Active feature
 
 Configured in [`.specify/feature.json`](../.specify/feature.json):
 
-- **Directory**: `specs/001-livekit-v2v`
-- **Branch**: `001-livekit-v2v`
+- **Directory**: `specs/002-ux-general-agent`
+- **Branch**: `002-ux-general-agent` (optional; create when planning/implementing)
 
 ## Artifact map (per feature)
 

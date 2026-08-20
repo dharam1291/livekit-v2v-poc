@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTheme } from 'next-themes';
 import { AnimatePresence, motion } from 'motion/react';
 import { ConnectionState, RoomEvent } from 'livekit-client';
 import { useAgent, useSessionContext } from '@livekit/components-react';
@@ -14,6 +13,7 @@ import {
   sessionStatusLabel,
   type SessionUiStatus,
 } from '@/lib/session-status';
+import type { SessionPersona } from '@/lib/session-persona';
 
 const MotionWelcomeView = motion.create(WelcomeView);
 const MotionSessionView = motion.create(AgentSessionView_01);
@@ -34,14 +34,18 @@ const VIEW_MOTION_PROPS = {
 
 interface ViewControllerProps {
   appConfig: AppConfig;
+  persona: SessionPersona;
+  onPersonaChange: (persona: SessionPersona) => void;
 }
 
-export function ViewController({ appConfig }: ViewControllerProps) {
+export function ViewController({ appConfig, persona, onPersonaChange }: ViewControllerProps) {
   const { isConnected, start, connectionState, room, end } = useSessionContext();
-  const { resolvedTheme } = useTheme();
   const agent = useAgent();
   const { timedOut, failureReason: joinFailure } = useAgentJoinTimeout(30_000);
   const [manualFailure, setManualFailure] = useState<string | null>(null);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
+  const [callStartedAt, setCallStartedAt] = useState<string | null>(null);
 
   const isConnecting = connectionState === ConnectionState.Connecting;
   const failed = Boolean(manualFailure || joinFailure || timedOut || agent.state === 'failed');
@@ -91,14 +95,29 @@ export function ViewController({ appConfig }: ViewControllerProps) {
     if (isConnecting) setManualFailure(null);
   }, [isConnecting]);
 
+  useEffect(() => {
+    if (isConnected && !failed && !callStartedAt) {
+      setCallStartedAt(new Date().toISOString());
+    }
+    if (!isConnected) {
+      setCallStartedAt(null);
+    }
+  }, [isConnected, failed, callStartedAt]);
+
   const handleStart = async () => {
     setManualFailure(null);
+    setStorageWarning(null);
     try {
       await Promise.resolve(start());
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to connect';
       setManualFailure(message);
     }
+  };
+
+  const handleConversationSaved = (warning: string | null) => {
+    setStorageWarning(warning);
+    setHistoryRefreshKey((k) => k + 1);
   };
 
   const showWelcome = !isConnected || failed;
@@ -114,30 +133,25 @@ export function ViewController({ appConfig }: ViewControllerProps) {
           connectionLabel={connectionLabel}
           isConnecting={isConnecting && !failed}
           failureReason={failureReason}
+          persona={persona}
+          onPersonaChange={onPersonaChange}
+          historyRefreshKey={historyRefreshKey}
+          storageWarning={storageWarning}
         />
       )}
       {isConnected && !failed && (
         <MotionSessionView
           key="session-view"
           {...VIEW_MOTION_PROPS}
-          preConnectMessage="Connected — allow mic if prompted, then speak. Transcripts appear above."
+          preConnectMessage="Connected — allow mic if prompted, then speak. Transcripts appear on the right."
           supportsChatInput={appConfig.supportsChatInput}
           supportsVideoInput={appConfig.supportsVideoInput}
           supportsScreenShare={appConfig.supportsScreenShare}
           isPreConnectBufferEnabled={appConfig.isPreConnectBufferEnabled}
-          audioVisualizerType={appConfig.audioVisualizerType}
-          audioVisualizerColor={
-            resolvedTheme === 'dark'
-              ? appConfig.audioVisualizerColorDark
-              : appConfig.audioVisualizerColor
-          }
-          audioVisualizerColorShift={appConfig.audioVisualizerColorShift}
-          audioVisualizerBarCount={appConfig.audioVisualizerBarCount}
-          audioVisualizerGridRowCount={appConfig.audioVisualizerGridRowCount}
-          audioVisualizerGridColumnCount={appConfig.audioVisualizerGridColumnCount}
-          audioVisualizerRadialBarCount={appConfig.audioVisualizerRadialBarCount}
-          audioVisualizerRadialRadius={appConfig.audioVisualizerRadialRadius}
-          audioVisualizerWaveLineWidth={appConfig.audioVisualizerWaveLineWidth}
+          avatarGender={persona.avatarGender}
+          sessionLanguage={persona.sessionLanguage}
+          conversationStartedAt={callStartedAt ?? undefined}
+          onConversationSaved={handleConversationSaved}
           className="fixed inset-0"
         />
       )}

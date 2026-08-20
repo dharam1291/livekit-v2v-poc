@@ -16,6 +16,10 @@ class AgentGraphState(TypedDict, total=False):
     should_greet: bool
     interrupted: bool
     ended: bool
+    # Session persona (002-ux-general-agent)
+    avatar_gender: str | None
+    session_language: str | None
+    kokoro_voice: str | None
 
 
 def initial_state() -> AgentGraphState:
@@ -27,4 +31,7 @@ def initial_state() -> AgentGraphState:
         "should_greet": True,
         "interrupted": False,
         "ended": False,
+        "avatar_gender": None,
+        "session_language": None,
+        "kokoro_voice": None,
     }

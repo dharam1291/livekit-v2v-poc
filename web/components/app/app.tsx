@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { TokenSource } from 'livekit-client';
 import { useSession } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
@@ -11,6 +11,11 @@ import { ViewController } from '@/components/app/view-controller';
 import { Toaster } from '@/components/ui/sonner';
 import { useAgentErrors } from '@/hooks/useAgentErrors';
 import { useDebugMode } from '@/hooks/useDebug';
+import {
+  DEFAULT_SESSION_PERSONA,
+  personaToAgentMetadata,
+  type SessionPersona,
+} from '@/lib/session-persona';
 import { getSandboxTokenSource } from '@/lib/utils';
 
 const IN_DEVELOPMENT = process.env.NODE_ENV !== 'production';
@@ -27,24 +32,60 @@ interface AppProps {
 }
 
 export function App({ appConfig }: AppProps) {
+  const [persona, setPersona] = useState<SessionPersona>(DEFAULT_SESSION_PERSONA);
+  const personaRef = useRef(persona);
+  personaRef.current = persona;
+
   const tokenSource = useMemo(() => {
     const sandboxEndpoint = process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT?.trim();
-    // Empty string in .env must NOT select the sandbox path (causes Failed to fetch).
-    return sandboxEndpoint
-      ? getSandboxTokenSource(appConfig)
-      : TokenSource.endpoint('/api/token');
+    if (sandboxEndpoint) {
+      return getSandboxTokenSource(appConfig);
+    }
+
+    return TokenSource.custom(async () => {
+      const current = personaRef.current;
+      const res = await fetch('/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          persona: current,
+          agent_metadata: personaToAgentMetadata(current),
+          room_config: appConfig.agentName
+            ? { agents: [{ agent_name: appConfig.agentName }] }
+            : undefined,
+        }),
+      });
+      if (!res.ok) {
+        const errBody = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(errBody?.error || `Token request failed (${res.status})`);
+      }
+      return await res.json();
+    });
   }, [appConfig]);
 
   const session = useSession(
     tokenSource,
-    appConfig.agentName ? { agentName: appConfig.agentName } : undefined
+    appConfig.agentName
+      ? {
+          agentName: appConfig.agentName,
+          agentMetadata: personaToAgentMetadata(persona),
+        }
+      : { agentMetadata: personaToAgentMetadata(persona) }
   );
+
+  const handlePersonaChange = useCallback((next: SessionPersona) => {
+    setPersona(next);
+  }, []);
 
   return (
     <AgentSessionProvider session={session}>
       <AppSetup />
       <main className="grid h-svh grid-cols-1 place-content-center">
-        <ViewController appConfig={appConfig} />
+        <ViewController
+          appConfig={appConfig}
+          persona={persona}
+          onPersonaChange={handlePersonaChange}
+        />
       </main>
       <StartAudioButton label="Start Audio" />
       <Toaster

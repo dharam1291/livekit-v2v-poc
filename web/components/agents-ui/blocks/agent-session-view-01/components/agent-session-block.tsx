@@ -1,15 +1,27 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { AnimatePresence, type MotionProps, motion } from 'motion/react';
 import { useAgent, useSessionContext, useSessionMessages } from '@livekit/components-react';
-import { AgentChatTranscript } from '@/components/agents-ui/agent-chat-transcript';
 import {
   AgentControlBar,
   type AgentControlBarControls,
 } from '@/components/agents-ui/agent-control-bar';
+import {
+  AgentAvatar,
+  agentStateToAvatarVisual,
+} from '@/components/app/agent-avatar';
+import { TranscriptPanel, messagesToEntries } from '@/components/app/transcript-panel';
+import { WaitFeedback } from '@/components/app/wait-feedback';
 import { cn } from '@/lib/shadcn/utils';
-import { TileLayout } from './tile-view';
+import type { AvatarGender } from '@/lib/session-persona';
+import {
+  buildConversationLabel,
+  upsertConversation,
+  type ConversationRecord,
+} from '@/lib/conversation-store';
+import { transcriptEntryToTurn } from '@/lib/transcript';
+import type { SessionLanguage } from '@/lib/session-persona';
 
 const BOTTOM_VIEW_MOTION_PROPS: MotionProps = {
   variants: {
@@ -30,29 +42,6 @@ const BOTTOM_VIEW_MOTION_PROPS: MotionProps = {
     delay: 0.5,
     ease: 'easeOut',
   },
-};
-
-const CHAT_MOTION_PROPS: MotionProps = {
-  variants: {
-    hidden: {
-      opacity: 0,
-      transition: {
-        ease: 'easeOut',
-        duration: 0.3,
-      },
-    },
-    visible: {
-      opacity: 1,
-      transition: {
-        delay: 0.2,
-        ease: 'easeOut',
-        duration: 0.3,
-      },
-    },
-  },
-  initial: 'hidden',
-  animate: 'visible',
-  exit: 'hidden',
 };
 
 const SHIMMER_MOTION_PROPS: MotionProps = {
@@ -99,90 +88,39 @@ export function Fade({ top = false, bottom = false, className }: FadeProps) {
 }
 
 export interface AgentSessionView_01Props {
-  /**
-   * Theme mode forwarded to the aura visualizer (`audioVisualizerType="aura"`) so
-   * the shader's blend mode adapts to the theme mode.
-   * Ignored by other visualizer types.
-   */
-  themeMode?: 'dark' | 'light';
-  /**
-   * Message shown above the controls before the first chat message is sent.
-   *
-   * @default 'Agent is listening, ask it a question'
-   */
   preConnectMessage?: string;
-  /**
-   * Enables or disables the chat toggle and transcript input controls.
-   *
-   * @default true
-   */
   supportsChatInput?: boolean;
-  /**
-   * Enables or disables camera controls in the bottom control bar.
-   *
-   * @default true
-   */
   supportsVideoInput?: boolean;
-  /**
-   * Enables or disables screen sharing controls in the bottom control bar.
-   *
-   * @default true
-   */
   supportsScreenShare?: boolean;
-  /**
-   * Shows a pre-connect buffer state with a shimmer message before messages appear.
-   *
-   * @default true
-   */
   isPreConnectBufferEnabled?: boolean;
-
-  /** Selects the visualizer style rendered in the main tile area. */
-  audioVisualizerType?: 'bar' | 'wave' | 'grid' | 'radial' | 'aura';
-  /** Primary hex color used by supported audio visualizer variants. */
-  audioVisualizerColor?: `#${string}`;
-  /** Hue shift intensity used by certain visualizers. */
-  audioVisualizerColorShift?: number;
-  /** Number of bars to render when `audioVisualizerType` is `bar`. */
-  audioVisualizerBarCount?: number;
-  /** Number of rows in the visualizer when `audioVisualizerType` is `grid`. */
-  audioVisualizerGridRowCount?: number;
-  /** Number of columns in the visualizer when `audioVisualizerType` is `grid`. */
-  audioVisualizerGridColumnCount?: number;
-  /** Number of radial bars when `audioVisualizerType` is `radial`. */
-  audioVisualizerRadialBarCount?: number;
-  /** Base radius of the radial visualizer when `audioVisualizerType` is `radial`. */
-  audioVisualizerRadialRadius?: number;
-  /** Stroke width of the wave path when `audioVisualizerType` is `wave`. */
-  audioVisualizerWaveLineWidth?: number;
-  /** Optional class name merged onto the outer `<section>` container. */
   className?: string;
+  avatarGender?: AvatarGender;
+  sessionLanguage?: SessionLanguage;
+  conversationStartedAt?: string;
+  onConversationSaved?: (warning: string | null) => void;
 }
 
 export function AgentSessionView_01({
   preConnectMessage = 'Agent is listening, ask it a question',
-  supportsChatInput = true,
+  supportsChatInput: _supportsChatInput = true,
   supportsVideoInput = true,
   supportsScreenShare = true,
   isPreConnectBufferEnabled = true,
-  audioVisualizerType,
-  audioVisualizerColor,
-  audioVisualizerColorShift,
-  audioVisualizerBarCount,
-  audioVisualizerGridRowCount,
-  audioVisualizerGridColumnCount,
-  audioVisualizerRadialBarCount,
-  audioVisualizerRadialRadius,
-  audioVisualizerWaveLineWidth,
-  themeMode,
+  avatarGender = 'female',
+  sessionLanguage = 'en',
+  conversationStartedAt,
+  onConversationSaved,
   ref,
   className,
   ...props
 }: React.ComponentProps<'section'> & AgentSessionView_01Props) {
   const session = useSessionContext();
   const { messages } = useSessionMessages(session);
-  const [isChatOpen, setIsChatOpen] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { state: agentState } = useAgent();
+  const savedRef = useRef(false);
+  const startedAtRef = useRef(conversationStartedAt || new Date().toISOString());
+  const entriesRef = useRef(messagesToEntries(messages));
 
   const agentStateLabel =
     agentState === 'listening'
@@ -204,19 +142,53 @@ export function AgentSessionView_01({
   const controls: AgentControlBarControls = {
     leave: true,
     microphone: true,
-    chat: supportsChatInput,
+    chat: false,
     camera: supportsVideoInput,
     screenShare: supportsScreenShare,
   };
 
-  useEffect(() => {
-    const lastMessage = messages.at(-1);
-    const lastMessageIsLocal = lastMessage?.from?.isLocal === true;
+  const entries = useMemo(() => messagesToEntries(messages), [messages]);
+  entriesRef.current = entries;
 
-    if (scrollAreaRef.current && lastMessageIsLocal) {
+  useEffect(() => {
+    if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [entries.length]);
+
+  const persistConversation = () => {
+    if (savedRef.current) return;
+    const turns = entriesRef.current
+      .map(transcriptEntryToTurn)
+      .filter((t): t is NonNullable<typeof t> => t !== null);
+    if (!turns.length) return;
+    savedRef.current = true;
+    const record: ConversationRecord = {
+      id: crypto.randomUUID(),
+      startedAt: startedAtRef.current,
+      endedAt: new Date().toISOString(),
+      label: buildConversationLabel(turns),
+      avatarGender,
+      sessionLanguage,
+      turns,
+    };
+    const result = upsertConversation(record);
+    onConversationSaved?.(result.ok ? null : result.error);
+  };
+
+  const handleDisconnect = () => {
+    persistConversation();
+    session.end();
+  };
+
+  useEffect(() => {
+    return () => {
+      persistConversation();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- persist once on unmount via refs
+  }, []);
+
+  const thinking = agentState === 'thinking';
 
   return (
     <section
@@ -224,74 +196,67 @@ export function AgentSessionView_01({
       className={cn('bg-background relative z-10 h-full w-full overflow-hidden', className)}
       {...props}
     >
-      <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
-      <p
-        className="text-muted-foreground absolute inset-x-0 top-3 z-20 text-center font-mono text-xs tracking-wider uppercase"
-        aria-live="polite"
-      >
-        {agentStateLabel}
-      </p>
-      {/* transcript */}
-      <AnimatePresence>
-        {isChatOpen && (
-          <motion.div
-            {...CHAT_MOTION_PROPS}
-            className="absolute inset-x-0 top-0 bottom-[135px] overflow-hidden md:bottom-[170px]"
+      <div className="flex h-full min-h-0 flex-col md:flex-row">
+        {/* Main call stage */}
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+          <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
+          <p
+            className="text-muted-foreground absolute inset-x-0 top-3 z-20 text-center font-mono text-xs tracking-wider uppercase"
+            aria-live="polite"
           >
-            <AgentChatTranscript
-              agentState={agentState}
-              messages={messages}
-              className="mx-auto max-w-2xl **:data-[slot=message-scroller-content]:p-4 **:data-[slot=message-scroller-content]:pt-40! md:**:data-[slot=message-scroller-content]:p-6"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {agentStateLabel}
+          </p>
 
-      {/* Tile layout */}
-      <TileLayout
-        isChatOpen={isChatOpen}
-        themeMode={themeMode}
-        audioVisualizerType={audioVisualizerType}
-        audioVisualizerColor={audioVisualizerColor}
-        audioVisualizerColorShift={audioVisualizerColorShift}
-        audioVisualizerBarCount={audioVisualizerBarCount}
-        audioVisualizerRadialBarCount={audioVisualizerRadialBarCount}
-        audioVisualizerRadialRadius={audioVisualizerRadialRadius}
-        audioVisualizerGridRowCount={audioVisualizerGridRowCount}
-        audioVisualizerGridColumnCount={audioVisualizerGridColumnCount}
-        audioVisualizerWaveLineWidth={audioVisualizerWaveLineWidth}
-      />
-      {/* Bottom */}
-      <motion.div
-        {...BOTTOM_VIEW_MOTION_PROPS}
-        className="absolute inset-x-3 bottom-0 z-50 md:inset-x-12"
-      >
-        {/* Pre-connect message */}
-        {isPreConnectBufferEnabled && (
-          <AnimatePresence>
-            {messages.length === 0 && (
-              <motion.p
-                key="pre-connect-message"
-                aria-hidden={messages.length > 0}
-                {...SHIMMER_MOTION_PROPS}
-                className="shimmer shimmer-duration-2000 pointer-events-none mx-auto block w-full max-w-2xl pb-4 text-center text-sm font-semibold"
-              >
-                {preConnectMessage}
-              </motion.p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 pb-36 pt-12">
+            <AgentAvatar
+              gender={avatarGender}
+              visualState={agentStateToAvatarVisual(agentState)}
+            />
+            <WaitFeedback active={thinking} />
+          </div>
+
+          <motion.div
+            {...BOTTOM_VIEW_MOTION_PROPS}
+            className="absolute inset-x-3 bottom-0 z-50 md:inset-x-8"
+          >
+            {isPreConnectBufferEnabled && (
+              <AnimatePresence>
+                {messages.length === 0 && (
+                  <motion.p
+                    key="pre-connect-message"
+                    aria-hidden={messages.length > 0}
+                    {...SHIMMER_MOTION_PROPS}
+                    className="shimmer shimmer-duration-2000 pointer-events-none mx-auto block w-full max-w-2xl pb-4 text-center text-sm font-semibold"
+                  >
+                    {preConnectMessage}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             )}
-          </AnimatePresence>
-        )}
-        <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
-          <AgentControlBar
-            variant="livekit"
-            controls={controls}
-            isChatOpen={isChatOpen}
-            isConnected={session.isConnected}
-            onDisconnect={session.end}
-            onIsChatOpenChange={setIsChatOpen}
+            <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-10">
+              <AgentControlBar
+                variant="livekit"
+                controls={controls}
+                isChatOpen={false}
+                isConnected={session.isConnected}
+                onDisconnect={handleDisconnect}
+              />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Dedicated transcript panel (right on desktop, below on narrow) */}
+        <div
+          ref={scrollAreaRef}
+          className="border-border h-[40%] min-h-[220px] w-full shrink-0 border-t md:h-full md:w-[min(380px,36vw)] md:border-t-0 md:border-l"
+        >
+          <TranscriptPanel
+            entries={entries}
+            className="h-full border-0"
+            emptyLabel="Connected — transcripts will appear here as you talk."
           />
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

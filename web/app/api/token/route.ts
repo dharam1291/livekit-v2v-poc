@@ -9,6 +9,13 @@ type ConnectionDetails = {
   participantToken: string;
 };
 
+type PersonaBody = {
+  avatarGender?: unknown;
+  sessionLanguage?: unknown;
+  avatar_gender?: unknown;
+  session_language?: unknown;
+};
+
 // NOTE: you are expected to define the following environment variables in `.env.local`:
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -16,6 +23,44 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
 // don't cache the results
 export const revalidate = 0;
+
+function coerceGender(value: unknown): 'male' | 'female' {
+  return value === 'male' ? 'male' : 'female';
+}
+
+function coerceLanguage(value: unknown): string {
+  if (typeof value === 'string' && value.trim()) {
+    return value.trim().toLowerCase().split('-')[0] || 'en';
+  }
+  return 'en';
+}
+
+function parsePersona(body: Record<string, unknown>): {
+  avatarGender: 'male' | 'female';
+  sessionLanguage: string;
+} {
+  const fromPersona =
+    body.persona && typeof body.persona === 'object'
+      ? (body.persona as PersonaBody)
+      : null;
+
+  let fromAgentMeta: PersonaBody | null = null;
+  const agentMetaRaw = body.agent_metadata ?? body.agentMetadata;
+  if (typeof agentMetaRaw === 'string' && agentMetaRaw.trim()) {
+    try {
+      const parsed = JSON.parse(agentMetaRaw) as PersonaBody;
+      if (parsed && typeof parsed === 'object') fromAgentMeta = parsed;
+    } catch {
+      fromAgentMeta = null;
+    }
+  }
+
+  const source = fromPersona ?? fromAgentMeta ?? {};
+  return {
+    avatarGender: coerceGender(source.avatarGender ?? source.avatar_gender),
+    sessionLanguage: coerceLanguage(source.sessionLanguage ?? source.session_language),
+  };
+}
 
 export async function POST(req: Request) {
   // make an exception for the vercel preview environment
@@ -44,15 +89,21 @@ export async function POST(req: Request) {
       body = {};
     }
 
+    const persona = parsePersona(body);
+    const personaMetadata = JSON.stringify({
+      avatar_gender: persona.avatarGender,
+      session_language: persona.sessionLanguage,
+    });
+
     const roomConfig = body?.room_config
-      ? RoomConfiguration.fromJson(body.room_config, { ignoreUnknownFields: true })
+      ? RoomConfiguration.fromJson(body.room_config as never, { ignoreUnknownFields: true })
       : new RoomConfiguration();
 
-    // Ensure agent dispatch when client didn't send agents (local POC).
     const agentName = process.env.AGENT_NAME || 'v2v-poc-agent';
-    if (!roomConfig.agents || roomConfig.agents.length === 0) {
-      roomConfig.agents.push(new RoomAgentDispatch({ agentName }));
-    }
+    // Always dispatch with persona metadata so TTS voice matches UI selection.
+    roomConfig.agents = [
+      new RoomAgentDispatch({ agentName, metadata: personaMetadata }),
+    ];
 
     // Generate participant token
     const participantName = 'user';

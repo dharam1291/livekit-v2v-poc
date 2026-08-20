@@ -85,16 +85,18 @@ def build_llm(config: AgentConfig):
     return openai.LLM(**kwargs)
 
 
-def build_tts(config: AgentConfig):
+def build_tts(config: AgentConfig, *, voice: str | None = None):
+    """Build Speaches Kokoro TTS. ``voice`` overrides ``config.kokoro_voice`` when set."""
+    resolved_voice = voice or config.kokoro_voice
     logger.info(
         "Using Speaches TTS model=%s voice=%s base_url=%s",
         config.kokoro_model,
-        config.kokoro_voice,
+        resolved_voice,
         config.speaches_base_url,
     )
     return SpeachesTTS(
         model=config.kokoro_model,
-        voice=config.kokoro_voice,
+        voice=resolved_voice,
         base_url=config.speaches_base_url,
         api_key="not-needed",
         response_format="wav",

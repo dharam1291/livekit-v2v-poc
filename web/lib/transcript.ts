@@ -9,6 +9,14 @@ export interface TranscriptEntry {
   toolName?: string | null;
 }
 
+/** Persistence-ready turn shape (ISO timestamps) used by conversation history. */
+export interface TranscriptTurn {
+  id: string;
+  role: 'user' | 'agent';
+  text: string;
+  createdAt: string;
+}
+
 export function toTranscriptSpeaker(isLocal: boolean | undefined): TranscriptSpeaker {
   return isLocal ? 'tester' : 'agent';
 }
@@ -28,4 +36,19 @@ export function createTranscriptEntry(args: {
     createdAt: Date.now(),
     toolName: args.toolName ?? null,
   };
+}
+
+export function transcriptEntryToTurn(entry: TranscriptEntry): TranscriptTurn | null {
+  const text = entry.text.trim();
+  if (!text) return null;
+  return {
+    id: entry.entryId,
+    role: entry.speaker === 'tester' ? 'user' : 'agent',
+    text,
+    createdAt: new Date(entry.createdAt).toISOString(),
+  };
+}
+
+export function speakerFromMessage(isLocal: boolean | undefined): TranscriptSpeaker {
+  return toTranscriptSpeaker(isLocal);
 }
