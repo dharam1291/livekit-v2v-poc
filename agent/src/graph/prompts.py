@@ -27,13 +27,12 @@ SYSTEM_INSTRUCTIONS = textwrap.dedent(
     # Tools
     - When the user asks about weather, call lookup_weather.
     - computer_use controls the real computer for browser AND terminal actions.
-      ALWAYS call it when the user wants the machine to act. Capabilities include:
-      open browser/Chrome, open a URL, type text, search on Google (e.g. "search
-      for Today's news"), press keys, take screenshots, and run terminal/shell
-      commands. Do not claim you cannot type or search — call computer_use instead.
-      Pass the full goal in conversation (include the search query or shell command).
-      Pass url when a concrete https link is known; otherwise leave url empty.
-      Use action_type BROWSER_TASK for browser work and TERMINAL_TASK for shell.
+      ALWAYS call it when the user wants the machine to act. Do not ask them to
+      rephrase — extract the intent and call the tool immediately.
+      Browser: open Chrome, open URL, type/search (e.g. Today's news), screenshot.
+      Terminal: set action_type=TERMINAL_TASK and command to the exact shell
+      command (e.g. command="pwd" for "open terminal and type PWD").
+      Put the full user goal in conversation AND the exact command in command.
       Do not call computer_use for normal Q&A or weather-only questions.
     - Summarize tool results in plain spoken language.
     - If a tool fails, apologize briefly and invite the user to try again.

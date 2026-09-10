@@ -97,6 +97,7 @@ class GraphBackedAssistant(Agent):
         context: RunContext,
         conversation: str,
         url: str = "",
+        command: str = "",
         action_type: str = "BROWSER_TASK",
     ) -> str:
         """Control the user's computer for browser or terminal actions via Machine Y.
@@ -104,27 +105,30 @@ class GraphBackedAssistant(Agent):
         ALWAYS call this tool when the user wants the computer to DO something
         in a browser or terminal. Do not say you cannot type or search — this
         tool supports typing, searching, screenshots, and terminal commands.
+        Do not ask the user to rephrase — extract the command and call the tool.
 
         Call computer_use for:
         - Browser: open Chrome/browser, open a website/link, go to Google/YouTube,
           type or search on a page (e.g. "search for Today's news"), take a screenshot
-        - Terminal: run a shell/terminal command (e.g. "run ls in the terminal")
+        - Terminal: open/run anything in the terminal/shell (e.g. pwd, ls, whoami)
 
-        Do NOT call computer_use for:
-        - Weather or general Q&A with no computer action
-        - Questions about a site without asking to open or control it
+        Do NOT call computer_use for weather or general Q&A with no computer action.
 
         Arguments:
-        - conversation: full user goal in plain language (required). Include the
-          search text or terminal command in this string.
-        - url: https URL when known (e.g. https://www.google.com); else empty
-        - action_type: BROWSER_TASK (default) or TERMINAL_TASK for shell commands
+        - conversation: full user goal in plain language (required). Keep the user's
+          words, including the command name (pwd, ls, etc.).
+        - command: for terminal tasks, the EXACT shell command only (e.g. "pwd").
+          Always fill this when the user names a command.
+        - url: https URL when known; else empty
+        - action_type: TERMINAL_TASK for shell/terminal; BROWSER_TASK for browser
 
-        After the tool returns, briefly say what happened. Never mention tool names.
+        After the tool returns, briefly say what happened (include command output
+        if present). Never mention tool names.
 
         Args:
-            conversation: Full computer goal (browser or terminal).
+            conversation: Full computer goal from the user.
             url: Optional absolute URL; empty if unknown.
+            command: Exact shell command for terminal tasks (e.g. pwd).
             action_type: BROWSER_TASK or TERMINAL_TASK.
         """
         del context
@@ -140,6 +144,8 @@ class GraphBackedAssistant(Agent):
             self.note_agent_text(msg, tool_name="computer_use")
             return msg
         kind = (action_type or "BROWSER_TASK").strip().upper()
+        if (command or "").strip():
+            kind = "TERMINAL_TASK"
         if kind not in {"BROWSER_TASK", "TERMINAL_TASK"}:
             kind = "BROWSER_TASK"
         try:
@@ -147,6 +153,7 @@ class GraphBackedAssistant(Agent):
                 run_computer_use,
                 conversation,
                 url=url or None,
+                command=command or None,
                 action_type=kind,
             )
             self.note_agent_text(result, tool_name="computer_use")

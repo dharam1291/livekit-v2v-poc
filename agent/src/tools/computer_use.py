@@ -38,6 +38,7 @@ def run_computer_use(
     conversation: str,
     *,
     url: str | None = None,
+    command: str | None = None,
     action_type: str = "BROWSER_TASK",
     request_id: str | None = None,
     target: str | None = None,
@@ -45,26 +46,36 @@ def run_computer_use(
 ) -> str:
     """Invoke Machine Y and return a short spoken-friendly summary."""
     goal = (conversation or "").strip()
-    if not goal:
+    if not goal and not (command or "").strip():
         return (
             "I need a clearer computer task description, "
-            "for example open a website and take a screenshot."
+            "for example open a website or run pwd in the terminal."
         )
+    if not goal:
+        goal = f"Run terminal command: {(command or '').strip()}"
 
     context: dict[str, str] = {}
     if url and url.strip():
         context["url"] = url.strip()
+    if command and command.strip():
+        context["command"] = command.strip()
+
+    # Auto-select terminal when a shell command is provided
+    kind = (action_type or "BROWSER_TASK").strip().upper()
+    if context.get("command") and kind == "BROWSER_TASK":
+        kind = "TERMINAL_TASK"
 
     addr = (target or _target()).strip()
     timeout = timeout_sec if timeout_sec is not None else _timeout_sec()
     rid = (request_id or "").strip() or str(uuid.uuid4())
 
     logger.info(
-        "computer_use request target=%s action_type=%s request_id=%s has_url=%s",
+        "computer_use request target=%s action_type=%s request_id=%s has_url=%s has_command=%s",
         addr,
-        action_type,
+        kind,
         rid,
         "url" in context,
+        "command" in context,
     )
 
     channel = grpc.insecure_channel(addr)
@@ -73,7 +84,7 @@ def run_computer_use(
         resp = stub.ComputerUse(
             computer_use_pb2.ComputerUseRequest(
                 request_id=rid,
-                action_type=action_type or "BROWSER_TASK",
+                action_type=kind or "BROWSER_TASK",
                 conversation=goal,
                 context=context,
             ),
