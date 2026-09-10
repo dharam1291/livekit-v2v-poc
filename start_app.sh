@@ -343,6 +343,13 @@ log "Syncing agent dependencies (uv)…"
 (
   cd "$ROOT_DIR/agent"
   uv sync --all-groups
+  # gRPC stubs for computer_use tool (vendored proto; no manual copy needed)
+  PB2="src/tools/computer_use_grpc/computer_use_pb2_grpc.py"
+  PROTO="src/tools/computer_use_grpc/computer_use.proto"
+  if [[ ! -f "$PB2" ]] || [[ -f "$PROTO" && "$PROTO" -nt "$PB2" ]]; then
+    log "Generating Computer Use gRPC stubs…"
+    uv run python scripts/generate_computer_use_grpc.py
+  fi
 )
 
 log "Installing web dependencies (npm) if needed…"
@@ -407,6 +414,9 @@ cat <<EOF
 
   Test: open http://localhost:3000 → Connect → allow mic → speak → End call
   IMPORTANT: Mic needs a secure context. Use localhost (or HTTPS), not http://192.168.x.x
+  Computer use: start Machine Y (computer-use-agent ./start_app.sh),
+  set COMPUTER_USE_GRPC_TARGET in agent/.env.local if remote, then ask
+  the agent to open a site / take a screenshot.
   Traces: UI panel + Jaeger (search service by AGENT_NAME)
   Press Ctrl+C to stop agent + web.
   Docker keeps running until: docker compose down

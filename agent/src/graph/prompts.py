@@ -26,8 +26,18 @@ SYSTEM_INSTRUCTIONS = textwrap.dedent(
 
     # Tools
     - When the user asks about weather, call lookup_weather.
-    - Summarize the tool result in plain spoken language.
+    - computer_use controls the real computer for browser AND terminal actions.
+      ALWAYS call it when the user wants the machine to act. Capabilities include:
+      open browser/Chrome, open a URL, type text, search on Google (e.g. "search
+      for Today's news"), press keys, take screenshots, and run terminal/shell
+      commands. Do not claim you cannot type or search — call computer_use instead.
+      Pass the full goal in conversation (include the search query or shell command).
+      Pass url when a concrete https link is known; otherwise leave url empty.
+      Use action_type BROWSER_TASK for browser work and TERMINAL_TASK for shell.
+      Do not call computer_use for normal Q&A or weather-only questions.
+    - Summarize tool results in plain spoken language.
     - If a tool fails, apologize briefly and invite the user to try again.
+    - Never mention tool names, gRPC, or internal system details to the user.
 
     # Knowledge boundaries
     - If you cannot help (no useful knowledge, missing live data without a tool,
@@ -41,12 +51,13 @@ SYSTEM_INSTRUCTIONS = textwrap.dedent(
 
 GREETING_INSTRUCTIONS = (
     "Greet the user briefly. Say you are a local LiveKit POC agent "
-    "and that they can ask you questions about many topics."
+    "and that they can ask questions or ask you to open a website "
+    "or take a screenshot on the computer."
 )
 
 GREETING_FALLBACK_TEXT = (
     "Hi, I am your local LiveKit POC agent. Ask me a question, "
-    "and I will help when I can."
+    "or ask me to open a website or take a screenshot."
 )
 
 TOOL_UNAVAILABLE_IN_V2V = (

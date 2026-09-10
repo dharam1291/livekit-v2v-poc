@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -11,6 +12,11 @@ from graph.graph import build_agent_graph, greeting_text
 from graph.nodes import mark_agent_turn, mark_interrupted, mark_user_turn
 from graph.prompts import TOOL_UNAVAILABLE_IN_V2V, system_instructions_for
 from graph.state import AgentGraphState, initial_state
+from tools.computer_use import (
+    computer_use_enabled,
+    computer_use_failure_message,
+    run_computer_use,
+)
 from tools.weather import lookup_weather, weather_tool_failure_message
 
 logger = logging.getLogger("agent.bridge")
@@ -83,6 +89,72 @@ class GraphBackedAssistant(Agent):
             logger.exception("Weather tool failed for %s", location)
             fallback = weather_tool_failure_message(location)
             self.note_agent_text(fallback, tool_name="lookup_weather")
+            return fallback
+
+    @function_tool
+    async def computer_use(
+        self,
+        context: RunContext,
+        conversation: str,
+        url: str = "",
+        action_type: str = "BROWSER_TASK",
+    ) -> str:
+        """Control the user's computer for browser or terminal actions via Machine Y.
+
+        ALWAYS call this tool when the user wants the computer to DO something
+        in a browser or terminal. Do not say you cannot type or search — this
+        tool supports typing, searching, screenshots, and terminal commands.
+
+        Call computer_use for:
+        - Browser: open Chrome/browser, open a website/link, go to Google/YouTube,
+          type or search on a page (e.g. "search for Today's news"), take a screenshot
+        - Terminal: run a shell/terminal command (e.g. "run ls in the terminal")
+
+        Do NOT call computer_use for:
+        - Weather or general Q&A with no computer action
+        - Questions about a site without asking to open or control it
+
+        Arguments:
+        - conversation: full user goal in plain language (required). Include the
+          search text or terminal command in this string.
+        - url: https URL when known (e.g. https://www.google.com); else empty
+        - action_type: BROWSER_TASK (default) or TERMINAL_TASK for shell commands
+
+        After the tool returns, briefly say what happened. Never mention tool names.
+
+        Args:
+            conversation: Full computer goal (browser or terminal).
+            url: Optional absolute URL; empty if unknown.
+            action_type: BROWSER_TASK or TERMINAL_TASK.
+        """
+        del context
+        if not self._tools_enabled:
+            msg = TOOL_UNAVAILABLE_IN_V2V
+            self.note_agent_text(msg, tool_name="computer_use")
+            return msg
+        if not computer_use_enabled():
+            msg = (
+                "Computer use is currently disabled. "
+                "Set COMPUTER_USE_ENABLED=true to turn it on."
+            )
+            self.note_agent_text(msg, tool_name="computer_use")
+            return msg
+        kind = (action_type or "BROWSER_TASK").strip().upper()
+        if kind not in {"BROWSER_TASK", "TERMINAL_TASK"}:
+            kind = "BROWSER_TASK"
+        try:
+            result = await asyncio.to_thread(
+                run_computer_use,
+                conversation,
+                url=url or None,
+                action_type=kind,
+            )
+            self.note_agent_text(result, tool_name="computer_use")
+            return result
+        except Exception:
+            logger.exception("Computer use tool failed")
+            fallback = computer_use_failure_message()
+            self.note_agent_text(fallback, tool_name="computer_use")
             return fallback
 
 

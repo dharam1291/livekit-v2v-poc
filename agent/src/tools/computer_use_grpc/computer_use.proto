@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package computer_use.v1;
+
+option py_generic_services = false;
+
+// High-level computer-use boundary between Agent X and Machine Y.
+// Stable across future ActionType additions; internal actions are NOT exposed here.
+
+service ComputerUseService {
+  // Execute one high-level computer-use task and return a terminal outcome.
+  rpc ComputerUse (ComputerUseRequest) returns (ComputerUseResponse);
+}
+
+message ComputerUseRequest {
+  // Correlation id; echoed in the response and logs.
+  string request_id = 1;
+  // High-level capability. POC: "BROWSER_TASK".
+  string action_type = 2;
+  // Task description / conversation excerpt from Agent X.
+  string conversation = 3;
+  // Optional structured hints (e.g. url). Values are strings for POC simplicity.
+  map<string, string> context = 4;
+}
+
+message ComputerUseResponse {
+  string request_id = 1;
+  // SUCCESS | FAILED | NEEDS_USER_INPUT
+  string status = 2;
+  // Concise human-readable outcome.
+  string result = 3;
+  Observation observation = 4;
+  ErrorInfo error = 5;
+}
+
+message Observation {
+  // e.g. "screenshot"
+  string kind = 1;
+  string mime_type = 2;
+  // Inline payload for Agent X; do not write to default logs.
+  bytes data = 3;
+  string description = 4;
+}
+
+message ErrorInfo {
+  // Machine-readable code (see data-model.md).
+  string code = 1;
+  string message = 2;
+}

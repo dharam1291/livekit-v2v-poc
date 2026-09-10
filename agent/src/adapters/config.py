@@ -34,6 +34,10 @@ class AgentConfig:
     realtime_model: str = "gpt-realtime"
     realtime_azure_deployment: str | None = None
     realtime_api_version: str | None = None
+    # Machine Y Computer-Use Agent (gRPC)
+    computer_use_enabled: bool = True
+    computer_use_grpc_target: str = "127.0.0.1:50051"
+    computer_use_timeout_sec: float = 180.0
 
 
 def normalize_reply_mode(value: str | None) -> ReplyMode:
@@ -93,4 +97,14 @@ def load_agent_config() -> AgentConfig:
         realtime_model=os.getenv("REALTIME_MODEL", "gpt-realtime"),
         realtime_azure_deployment=os.getenv("REALTIME_AZURE_DEPLOYMENT"),
         realtime_api_version=os.getenv("REALTIME_API_VERSION"),
+        computer_use_enabled=(
+            os.getenv("COMPUTER_USE_ENABLED", "true").strip().lower()
+            in {"1", "true", "yes", "on"}
+        ),
+        computer_use_grpc_target=(
+            os.getenv("COMPUTER_USE_GRPC_TARGET")
+            or os.getenv("COMPUTER_USE_GRPC_URL")
+            or "127.0.0.1:50051"
+        ).strip(),
+        computer_use_timeout_sec=float(os.getenv("COMPUTER_USE_TIMEOUT_SEC", "180")),
     )

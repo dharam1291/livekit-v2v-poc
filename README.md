@@ -164,3 +164,112 @@ curl -X POST "http://localhost:8000/v1/models/Systran/faster-whisper-small"
 curl -X POST "http://localhost:8000/v1/models/speaches-ai/Kokoro-82M-v1.0-ONNX"
 curl -s "http://localhost:8000/v1/models"
 ```
+
+---
+
+## Testing the `computer_use` tool
+
+The LiveKit agent (Agent X) exposes a **`computer_use`** tool that calls the Machine Y
+**Computer-Use Agent** over gRPC. Agent X sends a high-level goal; Machine Y opens
+Chrome, optionally navigates, takes a screenshot, and returns status/result.
+
+Sibling project (must be running):  
+`/Users/dharmendrasingh/DTDL_CODEBASE/POC/computer-use-agent`
+
+### When the agent should call it
+
+| User says (examples) | Expected tool |
+|----------------------|---------------|
+| “Open Google and take a screenshot” | `computer_use` |
+| “Open Chrome / open this website” | `computer_use` |
+| “What’s the weather in Paris?” | `lookup_weather` (not computer use) |
+| “What is Google?” (info only) | No computer tool |
+
+POC supports **browser open / navigate / screenshot** only (not desktop apps or terminal).
+
+### Env (LiveKit Agent X)
+
+In `agent/.env.local` (see `agent/.env.example`):
+
+```bash
+COMPUTER_USE_ENABLED=true
+COMPUTER_USE_GRPC_TARGET=127.0.0.1:50051   # or Machine Y LAN IP for two laptops
+COMPUTER_USE_TIMEOUT_SEC=180
+```
+
+`./start_app.sh` installs deps and auto-generates gRPC stubs from the vendored proto
+under `agent/src/tools/computer_use_grpc/` — no manual proto copy needed.
+
+### A) Same computer
+
+**Terminal 1 — Machine Y (computer-use-agent):**
+
+```bash
+cd /Users/dharmendrasingh/DTDL_CODEBASE/POC/computer-use-agent
+./start_app.sh
+# Expect: server_ready on 127.0.0.1:50051
+```
+
+**Terminal 2 — LiveKit (this repo):**
+
+```bash
+cd /Users/dharmendrasingh/DTDL_CODEBASE/POC/livekit-v2v-poc
+# COMPUTER_USE_GRPC_TARGET=127.0.0.1:50051
+./start_app.sh
+```
+
+1. Open **http://localhost:3000** → Connect → allow mic  
+2. Say: **“Open Google and take a screenshot.”**  
+3. Expect: Chrome opens on this machine; the agent speaks a short success summary  
+4. Machine Y logs should show `request_received` → `request_completed`
+
+**Optional gRPC-only check** (no UI):
+
+```bash
+cd /Users/dharmendrasingh/DTDL_CODEBASE/POC/computer-use-agent
+source .venv/bin/activate
+python -m computer_use_agent.clients.sample_agent_x \
+  --target 127.0.0.1:50051 \
+  --conversation "Open Chrome and take a screenshot of Google." \
+  --context url=https://www.google.com
+```
+
+### B) Two different laptops
+
+| Laptop | Role | What to run |
+|--------|------|-------------|
+| **Y** | Computer / browser (Machine Y) | `computer-use-agent` `./start_app.sh` |
+| **X** | Voice agent + UI (Agent X) | `livekit-v2v-poc` `./start_app.sh` |
+
+**Laptop Y** — bind for LAN access in `computer-use-agent` `.env`:
+
+```bash
+GRPC_HOST=0.0.0.0
+GRPC_PORT=50051
+```
+
+Then `./start_app.sh`. Note Y’s LAN IP (e.g. `192.168.1.50`). Allow TCP **50051** in the firewall.
+
+**Laptop X** — point at Y in `agent/.env.local`:
+
+```bash
+COMPUTER_USE_ENABLED=true
+COMPUTER_USE_GRPC_TARGET=192.168.1.50:50051
+COMPUTER_USE_TIMEOUT_SEC=180
+```
+
+Then `./start_app.sh`, open **http://localhost:3000** on X, and say the same screenshot prompt. Chrome should open on **Laptop Y**.
+
+| Setup | `COMPUTER_USE_GRPC_TARGET` (Agent X) | `GRPC_HOST` (Machine Y) |
+|-------|--------------------------------------|-------------------------|
+| Same laptop | `127.0.0.1:50051` | `127.0.0.1` (default) |
+| Two laptops | `<LaptopY-LAN-IP>:50051` | `0.0.0.0` |
+
+### Quick troubleshooting
+
+| Symptom | Check |
+|---------|--------|
+| Tool timeout / connection error | Machine Y running? Target host/port correct? Same network? |
+| Tool never called | Use **standard** reply mode (full tools); ask clearly to open a site / screenshot |
+| Browser errors on Y | Chrome installed; Playwright drivers installed via Machine Y `./start_app.sh` |
+| Works on same PC, fails on two laptops | `GRPC_HOST=0.0.0.0` on Y; firewall allows 50051; use LAN IP not `127.0.0.1` on X |
