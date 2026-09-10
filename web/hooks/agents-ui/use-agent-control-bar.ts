@@ -124,27 +124,14 @@ export function useInputControls({
 
   const handleToggleMicrophone = useCallback(
     async (enabled?: boolean) => {
-      const local = room?.localParticipant;
-      const next =
+      // Use the LiveKit track toggle only — do not poke MediaStreamTrack.enabled
+      // (that fought unmute and left the mic visually on but silent).
+      await microphoneToggle.toggle(enabled);
+      const nowEnabled =
         typeof enabled === 'boolean'
           ? enabled
-          : !(local?.isMicrophoneEnabled ?? microphoneToggle.enabled);
-
-      // Prefer the room API so mute/unmute always publishes TrackMuted to the agent.
-      if (local) {
-        await local.setMicrophoneEnabled(next);
-      } else {
-        await microphoneToggle.toggle(next);
-      }
-
-      // Belt-and-suspenders: stop the underlying MediaStreamTrack while muted.
-      const pub = local?.getTrackPublication(Track.Source.Microphone);
-      const media = pub?.track?.mediaStreamTrack;
-      if (media) {
-        media.enabled = next;
-      }
-
-      saveAudioInputEnabled(next);
+          : (room?.localParticipant?.isMicrophoneEnabled ?? false);
+      saveAudioInputEnabled(nowEnabled);
     },
     [room, microphoneToggle, saveAudioInputEnabled]
   );

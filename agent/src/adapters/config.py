@@ -33,6 +33,7 @@ class AgentConfig:
     jaeger_ui_url: str = "http://localhost:16686"
     realtime_model: str = "gpt-realtime"
     realtime_azure_deployment: str | None = None
+    realtime_api_version: str | None = None
 
 
 def normalize_reply_mode(value: str | None) -> ReplyMode:
@@ -91,4 +92,5 @@ def load_agent_config() -> AgentConfig:
         jaeger_ui_url=os.getenv("JAEGER_UI_URL", "http://localhost:16686"),
         realtime_model=os.getenv("REALTIME_MODEL", "gpt-realtime"),
         realtime_azure_deployment=os.getenv("REALTIME_AZURE_DEPLOYMENT"),
+        realtime_api_version=os.getenv("REALTIME_API_VERSION"),
     )

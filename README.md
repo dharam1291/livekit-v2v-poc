@@ -85,8 +85,10 @@ Whisper is **not** installed with pip/brew. Speaches downloads model weights int
 3. Hear the agent greeting in the selected language; speak; watch the **right-side transcript**, speaking avatar, and **session traces** panel
 4. While the agent thinks, you should see wait feedback and hear the soft `/wait-cue.wav` loop (visual still works if audio is blocked)
 5. Optional: “What’s the weather in London?” works in **standard** mode; in voice-to-voice tools are best-effort
-6. If voice-to-voice credentials are missing, the agent **falls back to standard** with a visible warning
+6. If voice-to-voice credentials are missing **or the Realtime WebSocket is blocked (e.g. PowerProxy 403)**, the agent **falls back to standard** with a visible warning
 7. **End call** → conversation appears under **Previous conversations** on the home page
+
+Voice-to-voice on Azure needs a Realtime-capable deployment (`REALTIME_AZURE_DEPLOYMENT`) and usually `REALTIME_API_VERSION=2024-10-01-preview` (do not reuse chat-only `OPENAI_API_VERSION`). Many chat proxies reject Realtime WS; the agent probes and falls back.
 
 ### Dual-mode / traces (agent env)
 
@@ -116,10 +118,13 @@ Logs while running stream in the `./start_app.sh` terminal and are also written 
 
 ## Project layout
 
+E2E architecture diagram: **[docs/architecture.md](./docs/architecture.md)**
+
 ```
 livekit-v2v-poc/
   start_app.sh           # ← only command you need to start everything
-  docker-compose.yml     # LiveKit + Speaches
+  docker-compose.yml     # LiveKit + Speaches + Jaeger
+  docs/                  # Architecture diagram + notes
   agent/                 # LiveKit Agents + LangGraph
     .env.example         # agent env template
     src/agent.py

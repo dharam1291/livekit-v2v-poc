@@ -25,7 +25,11 @@ logger = logging.getLogger("agent.speech_llm")
 
 
 class SpeachesAudioChunkedStream(tts_mod.ChunkedStream):
-    """Binary audio stream for Speaches/Kokoro with a guaranteed request_id."""
+    """Binary PCM stream for Speaches/Kokoro with a guaranteed request_id.
+
+    Uses ``audio/pcm`` so LiveKit can emit frames as bytes arrive (WAV/MP3
+    decoding buffers and delays first audio vs the transcript panel).
+    """
 
     def __init__(
         self, *, tts: OpenAITTS, input_text: str, conn_options: APIConnectOptions
@@ -39,7 +43,7 @@ class SpeachesAudioChunkedStream(tts_mod.ChunkedStream):
             input=self.input_text,
             model=self._opts.model,
             voice=self._opts.voice,
-            response_format=self._opts.response_format,  # type: ignore[arg-type]
+            response_format="pcm",
             speed=self._opts.speed,
             instructions=self._opts.instructions or openai_sdk.omit,
             stream_format="audio",
@@ -53,11 +57,13 @@ class SpeachesAudioChunkedStream(tts_mod.ChunkedStream):
                     request_id=request_id,
                     sample_rate=SAMPLE_RATE,
                     num_channels=NUM_CHANNELS,
-                    mime_type=f"audio/{self._opts.response_format}",
+                    mime_type="audio/pcm",
+                    frame_size_ms=50,
                 )
 
                 async for data in stream.iter_bytes():
-                    output_emitter.push(data)
+                    if data:
+                        output_emitter.push(data)
 
             output_emitter.flush()
 
@@ -72,7 +78,7 @@ class SpeachesAudioChunkedStream(tts_mod.ChunkedStream):
 
 
 class SpeachesTTS(OpenAITTS):
-    """OpenAI-compatible TTS forced onto LiveKit's binary audio stream path.
+    """OpenAI-compatible TTS forced onto LiveKit's binary PCM stream path.
 
     LiveKit's openai.TTS uses SSE streaming for every model except tts-1 / tts-1-hd.
     Speaches (Kokoro) returns raw audio bytes, not SSE events, which otherwise yields
@@ -150,7 +156,7 @@ def build_tts(config: AgentConfig, *, voice: str | None = None):
     """Build Speaches Kokoro TTS. ``voice`` overrides ``config.kokoro_voice`` when set."""
     resolved_voice = voice or config.kokoro_voice
     logger.info(
-        "Using Speaches TTS model=%s voice=%s base_url=%s",
+        "Using Speaches TTS model=%s voice=%s base_url=%s format=pcm",
         config.kokoro_model,
         resolved_voice,
         config.speaches_base_url,
@@ -160,5 +166,5 @@ def build_tts(config: AgentConfig, *, voice: str | None = None):
         voice=resolved_voice,
         base_url=config.speaches_base_url,
         api_key="not-needed",
-        response_format="wav",
+        response_format="pcm",
     )

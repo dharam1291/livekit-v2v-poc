@@ -23,6 +23,7 @@ from adapters.otel_setup import setup_jaeger_tracing
 from adapters.persona import resolve_persona, resolve_reply_mode_from_metadata
 from adapters.realtime_speech import (
     build_realtime_model,
+    probe_realtime_connection,
     voice_to_voice_availability,
 )
 from adapters.speech_llm import build_llm, build_stt, build_tts
@@ -124,6 +125,8 @@ async def my_agent(ctx: JobContext) -> None:
     fallback_reason: str | None = None
     if requested_mode == "voice_to_voice":
         ok, reason = voice_to_voice_availability(config)
+        if ok:
+            ok, reason = await probe_realtime_connection(config)
         if not ok:
             actual_mode = "standard"
             fallback_reason = reason or "voice_to_voice unavailable"
