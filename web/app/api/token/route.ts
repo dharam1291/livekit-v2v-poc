@@ -14,6 +14,8 @@ type PersonaBody = {
   sessionLanguage?: unknown;
   avatar_gender?: unknown;
   session_language?: unknown;
+  replyMode?: unknown;
+  reply_mode?: unknown;
 };
 
 // NOTE: you are expected to define the following environment variables in `.env.local`:
@@ -35,9 +37,21 @@ function coerceLanguage(value: unknown): string {
   return 'en';
 }
 
+function coerceReplyMode(value: unknown): 'standard' | 'voice_to_voice' {
+  const raw = String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, '_');
+  if (raw === 'voice_to_voice' || raw === 'v2v' || raw === 'realtime') {
+    return 'voice_to_voice';
+  }
+  return 'standard';
+}
+
 function parsePersona(body: Record<string, unknown>): {
   avatarGender: 'male' | 'female';
   sessionLanguage: string;
+  replyMode: 'standard' | 'voice_to_voice';
 } {
   const fromPersona =
     body.persona && typeof body.persona === 'object'
@@ -56,9 +70,13 @@ function parsePersona(body: Record<string, unknown>): {
   }
 
   const source = fromPersona ?? fromAgentMeta ?? {};
+  const topLevelMode = body.replyMode ?? body.reply_mode;
   return {
     avatarGender: coerceGender(source.avatarGender ?? source.avatar_gender),
     sessionLanguage: coerceLanguage(source.sessionLanguage ?? source.session_language),
+    replyMode: coerceReplyMode(
+      source.replyMode ?? source.reply_mode ?? topLevelMode ?? process.env.REPLY_MODE
+    ),
   };
 }
 
@@ -93,6 +111,7 @@ export async function POST(req: Request) {
     const personaMetadata = JSON.stringify({
       avatar_gender: persona.avatarGender,
       session_language: persona.sessionLanguage,
+      reply_mode: persona.replyMode,
     });
 
     const roomConfig = body?.room_config
@@ -100,7 +119,7 @@ export async function POST(req: Request) {
       : new RoomConfiguration();
 
     const agentName = process.env.AGENT_NAME || 'v2v-poc-agent';
-    // Always dispatch with persona metadata so TTS voice matches UI selection.
+    // Always dispatch with persona + reply mode metadata.
     roomConfig.agents = [
       new RoomAgentDispatch({ agentName, metadata: personaMetadata }),
     ];

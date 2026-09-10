@@ -4,6 +4,12 @@ from __future__ import annotations
 
 import textwrap
 
+_LANGUAGE_NAMES = {
+    "en": "English",
+    "hi": "Hindi",
+    "es": "Spanish",
+}
+
 SYSTEM_INSTRUCTIONS = textwrap.dedent(
     """\
     You are a friendly LiveKit voice-to-voice POC assistant.
@@ -42,3 +48,44 @@ GREETING_FALLBACK_TEXT = (
     "Hi, I am your local LiveKit POC agent. Ask me a question, "
     "and I will help when I can."
 )
+
+TOOL_UNAVAILABLE_IN_V2V = (
+    "I cannot run that live lookup in low-latency voice mode right now. "
+    "Switch to standard mode for full tool support, or ask something I can answer directly."
+)
+
+
+def language_display_name(language: str | None) -> str:
+    code = (language or "en").strip().lower().split("-")[0]
+    return _LANGUAGE_NAMES.get(code, "English")
+
+
+def system_instructions_for(language: str | None) -> str:
+    name = language_display_name(language)
+    return (
+        SYSTEM_INSTRUCTIONS
+        + f"\n# Language\n- Always speak and reply in {name}.\n"
+        + "- Do not switch languages unless the user clearly asks you to.\n"
+    )
+
+
+def greeting_instructions_for(language: str | None) -> str:
+    name = language_display_name(language)
+    return (
+        f"{GREETING_INSTRUCTIONS} Speak the entire greeting in {name}."
+    )
+
+
+def greeting_fallback_for(language: str | None) -> str:
+    code = (language or "en").strip().lower().split("-")[0]
+    if code == "hi":
+        return (
+            "नमस्ते, मैं आपका लोकल LiveKit POC एजेंट हूँ। "
+            "मुझसे कोई भी सवाल पूछें, मैं जहाँ मदद कर सकूँगा।"
+        )
+    if code == "es":
+        return (
+            "Hola, soy tu agente local de prueba LiveKit. "
+            "Pregúntame lo que quieras y te ayudo cuando pueda."
+        )
+    return GREETING_FALLBACK_TEXT

@@ -1,12 +1,46 @@
 import pytest
-from livekit.plugins.openai.tts import AudioChunkedStream
 
 from adapters.config import AgentConfig
+from adapters.eou import build_turn_handling
 from adapters.livekit_bridge import GraphBackedAssistant, create_assistant
-from adapters.speech_llm import SpeachesTTS, build_tts
+from adapters.mic_gate import apply_user_mic_muted
+from adapters.realtime_speech import (
+    _realtime_ws_url,
+    realtime_api_version,
+    voice_to_voice_availability,
+)
+from adapters.speech_llm import SpeachesAudioChunkedStream, SpeachesTTS, build_tts
 from agent import AGENT_NAME
 from graph.graph import greeting_text
 from tools.weather import lookup_weather
+
+
+class _FakeInput:
+    def __init__(self) -> None:
+        self.audio_enabled = True
+
+    def set_audio_enabled(self, enabled: bool) -> None:
+        self.audio_enabled = enabled
+
+
+class _FakeSession:
+    def __init__(self) -> None:
+        self.input = _FakeInput()
+        self.cleared = 0
+
+    def clear_user_turn(self) -> None:
+        self.cleared += 1
+
+
+def test_apply_user_mic_muted_clears_turn_only() -> None:
+    session = _FakeSession()
+    apply_user_mic_muted(session, muted=True)  # type: ignore[arg-type]
+    assert session.cleared == 1
+    # Must NOT detach audio input — that broke mute→unmute listening.
+    assert session.input.audio_enabled is True
+    apply_user_mic_muted(session, muted=False)  # type: ignore[arg-type]
+    assert session.input.audio_enabled is True
+    assert session.cleared == 1
 
 
 def _sample_config(**overrides: object) -> AgentConfig:
@@ -66,4 +100,39 @@ async def test_build_tts_uses_speaches_binary_stream() -> None:
     tts = build_tts(_sample_config())
     assert isinstance(tts, SpeachesTTS)
     stream = tts.synthesize("Hello from the POC.")
-    assert isinstance(stream, AudioChunkedStream)
+    assert isinstance(stream, SpeachesAudioChunkedStream)
+
+
+def test_turn_handling_uses_local_vad() -> None:
+    th = build_turn_handling(_sample_config())
+    assert th["turn_detection"] == "vad"
+    assert th["interruption"]["mode"] == "vad"
+    assert "min_delay" in th["endpointing"]
+
+
+def test_realtime_uses_dedicated_api_version_not_chat() -> None:
+    cfg = _sample_config(
+        llm_provider="azure",
+        azure_endpoint="https://powerproxy.example.com",
+        azure_deployment="gpt-5.4",
+        openai_api_version="2024-10-21",
+        realtime_azure_deployment="gpt-realtime",
+        realtime_api_version=None,
+    )
+    assert realtime_api_version(cfg) == "2024-10-01-preview"
+    url = _realtime_ws_url(cfg)
+    assert "api-version=2024-10-01-preview" in url
+    assert "deployment=gpt-realtime" in url
+    assert "2024-10-21" not in url
+
+
+def test_v2v_unavailable_without_realtime_deployment() -> None:
+    cfg = _sample_config(
+        llm_provider="azure",
+        azure_endpoint="https://powerproxy.example.com",
+        openai_api_key="key",
+        realtime_azure_deployment=None,
+    )
+    ok, reason = voice_to_voice_availability(cfg)
+    assert ok is False
+    assert reason and "REALTIME_AZURE_DEPLOYMENT" in reason

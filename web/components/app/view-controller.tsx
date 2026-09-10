@@ -150,6 +150,7 @@ export function ViewController({ appConfig, persona, onPersonaChange }: ViewCont
           isPreConnectBufferEnabled={appConfig.isPreConnectBufferEnabled}
           avatarGender={persona.avatarGender}
           sessionLanguage={persona.sessionLanguage}
+          replyMode={persona.replyMode}
           conversationStartedAt={callStartedAt ?? undefined}
           onConversationSaved={handleConversationSaved}
           className="fixed inset-0"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # start_app.sh — single entrypoint for the LiveKit V2V POC
-# Starts: Docker (LiveKit + Speaches), Python agent, Next.js UI
+# Starts: Docker (LiveKit + Speaches + Jaeger), Python agent, Next.js UI
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,8 +11,8 @@ PID_FILE="$LOG_DIR/pids"
 AGENT_LOG="$LOG_DIR/agent.log"
 WEB_LOG="$LOG_DIR/web.log"
 
-# Host ports this POC needs (Docker publishes LiveKit/Speaches; Next uses 3000)
-PORTS_TO_FREE=(3000 7880 7881 7882 8000)
+# Host ports this POC needs (Docker publishes LiveKit/Speaches/Jaeger; Next uses 3000)
+PORTS_TO_FREE=(3000 7880 7881 7882 8000 16686 4317 4318)
 
 AGENT_PID=""
 WEB_PID=""
@@ -322,7 +322,7 @@ for port in "${PORTS_TO_FREE[@]}"; do
   free_port "$port"
 done
 
-log "Starting Docker stack (LiveKit + Speaches)…"
+log "Starting Docker stack (LiveKit + Speaches + Jaeger)…"
 require_docker 5
 if ! docker compose up -d; then
   err "docker compose up failed. Is Docker Desktop running?"
@@ -335,6 +335,7 @@ wait_http "http://localhost:7880" "LiveKit" 45 || true
 if ! wait_http "http://localhost:8000/health" "Speaches" 90; then
   wait_http "http://localhost:8000/v1/models" "Speaches" 30
 fi
+wait_http "http://localhost:16686" "Jaeger UI" 45 || true
 
 ensure_speaches_models
 
@@ -367,7 +368,9 @@ STARTED=1
 log "Starting web UI (live log below + $WEB_LOG)…"
 (
   cd "$ROOT_DIR/web"
-  npm run dev -- --port 3000
+  # Bind to loopback only — mic/WebRTC require a secure context (localhost or HTTPS).
+  # LAN IPs like http://192.168.x.x:3000 are blocked by the browser.
+  npm run dev -- --port 3000 --hostname 127.0.0.1
 ) >>"$WEB_LOG" 2>&1 &
 WEB_PID=$!
 
@@ -393,15 +396,18 @@ cat <<EOF
 ========================================
   LiveKit V2V POC is running
 ========================================
-  UI:     http://localhost:3000
+  UI:     http://localhost:3000   ← use this exact URL (not a LAN IP)
   LiveKit ws://localhost:7880
   Speaches http://localhost:8000
+  Jaeger  http://localhost:16686  (service: v2v-poc-agent / AGENT_NAME)
 
   Agent + web logs stream in this terminal.
   Files: $AGENT_LOG
          $WEB_LOG
 
-  Test: open UI → Connect → allow mic → speak → End call
+  Test: open http://localhost:3000 → Connect → allow mic → speak → End call
+  IMPORTANT: Mic needs a secure context. Use localhost (or HTTPS), not http://192.168.x.x
+  Traces: UI panel + Jaeger (search service by AGENT_NAME)
   Press Ctrl+C to stop agent + web.
   Docker keeps running until: docker compose down
 ========================================

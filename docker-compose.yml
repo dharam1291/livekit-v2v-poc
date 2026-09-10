@@ -21,5 +21,17 @@ services:
       WHISPER_MODEL: Systran/faster-whisper-small
     restart: unless-stopped
 
+  # Jaeger all-in-one (UI + OTLP collector) for session/demo traces
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: livekit-v2v-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    restart: unless-stopped
+
 volumes:
   speaches_cache:

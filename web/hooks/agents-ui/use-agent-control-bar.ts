@@ -70,6 +70,7 @@ export function useInputControls({
   onDeviceError,
 }: UseInputControlsProps = {}): UseInputControlsReturn {
   const {
+    room,
     local: { microphoneTrack },
   } = useSessionContext();
 
@@ -123,11 +124,16 @@ export function useInputControls({
 
   const handleToggleMicrophone = useCallback(
     async (enabled?: boolean) => {
+      // Use the LiveKit track toggle only — do not poke MediaStreamTrack.enabled
+      // (that fought unmute and left the mic visually on but silent).
       await microphoneToggle.toggle(enabled);
-      // persist audio input enabled preference
-      saveAudioInputEnabled(!microphoneToggle.enabled);
+      const nowEnabled =
+        typeof enabled === 'boolean'
+          ? enabled
+          : (room?.localParticipant?.isMicrophoneEnabled ?? false);
+      saveAudioInputEnabled(nowEnabled);
     },
-    [microphoneToggle, saveAudioInputEnabled]
+    [room, microphoneToggle, saveAudioInputEnabled]
   );
 
   const handleToggleScreenShare = useCallback(

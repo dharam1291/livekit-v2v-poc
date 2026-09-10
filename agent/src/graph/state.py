@@ -20,6 +20,11 @@ class AgentGraphState(TypedDict, total=False):
     avatar_gender: str | None
     session_language: str | None
     kokoro_voice: str | None
+    # Demo-ready dual-mode (003)
+    reply_mode: str | None
+    requested_reply_mode: str | None
+    defaults_used: bool
+    realtime_voice: str | None
 
 
 def initial_state() -> AgentGraphState:
@@ -34,4 +39,8 @@ def initial_state() -> AgentGraphState:
         "avatar_gender": None,
         "session_language": None,
         "kokoro_voice": None,
+        "reply_mode": None,
+        "requested_reply_mode": None,
+        "defaults_used": False,
+        "realtime_voice": None,
     }

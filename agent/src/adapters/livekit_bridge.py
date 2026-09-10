@@ -9,7 +9,7 @@ from livekit.agents import Agent, RunContext, function_tool
 
 from graph.graph import build_agent_graph, greeting_text
 from graph.nodes import mark_agent_turn, mark_interrupted, mark_user_turn
-from graph.prompts import SYSTEM_INSTRUCTIONS
+from graph.prompts import TOOL_UNAVAILABLE_IN_V2V, system_instructions_for
 from graph.state import AgentGraphState, initial_state
 from tools.weather import lookup_weather, weather_tool_failure_message
 
@@ -19,10 +19,17 @@ logger = logging.getLogger("agent.bridge")
 class GraphBackedAssistant(Agent):
     """LiveKit Agent that keeps LangGraph session state in sync."""
 
-    def __init__(self) -> None:
-        super().__init__(instructions=SYSTEM_INSTRUCTIONS)
+    def __init__(
+        self,
+        *,
+        language: str | None = "en",
+        tools_enabled: bool = True,
+    ) -> None:
+        super().__init__(instructions=system_instructions_for(language))
         self._graph = build_agent_graph()
         self._state: AgentGraphState = initial_state()
+        self._language = language or "en"
+        self._tools_enabled = tools_enabled
 
     @property
     def graph_state(self) -> AgentGraphState:
@@ -64,6 +71,10 @@ class GraphBackedAssistant(Agent):
             location: City or place name to look up weather for.
         """
         del context
+        if not self._tools_enabled:
+            msg = TOOL_UNAVAILABLE_IN_V2V
+            self.note_agent_text(msg, tool_name="lookup_weather")
+            return msg
         try:
             result = lookup_weather(location)
             self.note_agent_text(result, tool_name="lookup_weather")
@@ -75,5 +86,9 @@ class GraphBackedAssistant(Agent):
             return fallback
 
 
-def create_assistant() -> GraphBackedAssistant:
-    return GraphBackedAssistant()
+def create_assistant(
+    *,
+    language: str | None = "en",
+    tools_enabled: bool = True,
+) -> GraphBackedAssistant:
+    return GraphBackedAssistant(language=language, tools_enabled=tools_enabled)

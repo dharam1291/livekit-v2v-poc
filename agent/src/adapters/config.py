@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from typing import Literal
+
+ReplyMode = Literal["standard", "voice_to_voice"]
 
 
 @dataclass(frozen=True)
@@ -21,6 +24,31 @@ class AgentConfig:
     kokoro_model: str
     kokoro_voice: str
     agent_join_timeout_sec: float = 30.0
+    reply_mode: ReplyMode = "standard"
+    min_endpointing_delay_ms: int = 500
+    max_endpointing_delay_ms: int = 3000
+    trace_enabled: bool = True
+    trace_dir: str = "traces"
+    otlp_endpoint: str = "http://localhost:4318/v1/traces"
+    jaeger_ui_url: str = "http://localhost:16686"
+    realtime_model: str = "gpt-realtime"
+    realtime_azure_deployment: str | None = None
+    realtime_api_version: str | None = None
+
+
+def normalize_reply_mode(value: str | None) -> ReplyMode:
+    raw = (value or "standard").strip().lower().replace("-", "_")
+    if raw in {"voice_to_voice", "v2v", "realtime"}:
+        return "voice_to_voice"
+    return "standard"
+
+
+def normalize_otlp_traces_endpoint(value: str | None) -> str:
+    """Ensure an OTLP HTTP traces URL (Jaeger collector on :4318)."""
+    raw = (value or "http://localhost:4318/v1/traces").strip().rstrip("/")
+    if raw.endswith("/v1/traces"):
+        return raw
+    return f"{raw}/v1/traces"
 
 
 def load_agent_config() -> AgentConfig:
@@ -51,4 +79,18 @@ def load_agent_config() -> AgentConfig:
         ),
         kokoro_voice=os.getenv("KOKORO_VOICE", "af_heart"),
         agent_join_timeout_sec=float(os.getenv("AGENT_JOIN_TIMEOUT_SEC", "30")),
+        reply_mode=normalize_reply_mode(os.getenv("REPLY_MODE")),
+        min_endpointing_delay_ms=int(os.getenv("MIN_ENDPOINTING_DELAY_MS", "500")),
+        max_endpointing_delay_ms=int(os.getenv("MAX_ENDPOINTING_DELAY_MS", "3000")),
+        trace_enabled=(os.getenv("TRACE_ENABLED", "true").strip().lower() not in {"0", "false", "no"}),
+        trace_dir=os.getenv("TRACE_DIR", "traces"),
+        otlp_endpoint=normalize_otlp_traces_endpoint(
+            os.getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
+            or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+            or "http://localhost:4318/v1/traces"
+        ),
+        jaeger_ui_url=os.getenv("JAEGER_UI_URL", "http://localhost:16686"),
+        realtime_model=os.getenv("REALTIME_MODEL", "gpt-realtime"),
+        realtime_azure_deployment=os.getenv("REALTIME_AZURE_DEPLOYMENT"),
+        realtime_api_version=os.getenv("REALTIME_API_VERSION"),
     )

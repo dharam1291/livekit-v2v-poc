@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConversationHistory } from '@/components/app/conversation-history';
-import type { AvatarGender, SessionLanguage, SessionPersona } from '@/lib/session-persona';
+import type { AvatarGender, ReplyMode, SessionLanguage, SessionPersona } from '@/lib/session-persona';
+import { replyModeLabel } from '@/lib/session-persona';
 
 interface WelcomeViewProps {
   startButtonText: string;
@@ -14,6 +16,19 @@ interface WelcomeViewProps {
   onPersonaChange: (persona: SessionPersona) => void;
   historyRefreshKey?: number;
   storageWarning?: string | null;
+}
+
+function useSecureMediaContext(): { ok: boolean; origin: string } {
+  const [state, setState] = useState({ ok: true, origin: '' });
+  useEffect(() => {
+    const origin = window.location.origin;
+    const ok =
+      window.isSecureContext === true &&
+      typeof navigator !== 'undefined' &&
+      Boolean(navigator.mediaDevices?.getUserMedia);
+    setState({ ok, origin });
+  }, []);
+  return state;
 }
 
 export const WelcomeView = ({
@@ -28,10 +43,13 @@ export const WelcomeView = ({
   storageWarning = null,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
+  const secure = useSecureMediaContext();
   const setGender = (avatarGender: AvatarGender) =>
     onPersonaChange({ ...persona, avatarGender });
   const setLanguage = (sessionLanguage: SessionLanguage) =>
     onPersonaChange({ ...persona, sessionLanguage });
+  const setReplyMode = (replyMode: ReplyMode) =>
+    onPersonaChange({ ...persona, replyMode });
 
   return (
     <div ref={ref} className="relative min-h-svh w-full overflow-y-auto">
@@ -67,6 +85,24 @@ export const WelcomeView = ({
           <p className="text-destructive mb-4 max-w-prose text-sm" role="alert">
             {failureReason}
           </p>
+        )}
+
+        {!secure.ok && (
+          <div
+            className="border-destructive/40 bg-destructive/10 text-destructive mb-4 max-w-prose rounded-md border px-3 py-2 text-left text-sm"
+            role="alert"
+          >
+            <p className="font-medium">Microphone blocked — insecure page origin</p>
+            <p className="mt-1 text-[13px] leading-5 opacity-90">
+              Browsers only allow mic access on HTTPS or{' '}
+              <code className="font-mono">localhost</code>. You are on{' '}
+              <code className="font-mono">{secure.origin || 'this origin'}</code>. Open{' '}
+              <a className="underline" href="http://localhost:3000">
+                http://localhost:3000
+              </a>{' '}
+              (not a LAN IP like <code className="font-mono">192.168…</code>).
+            </p>
+          </div>
         )}
 
         {storageWarning && (
@@ -123,20 +159,46 @@ export const WelcomeView = ({
               ))}
             </div>
           </fieldset>
+
+          <fieldset>
+            <legend className="mb-2 font-mono text-[10px] tracking-wider uppercase">
+              Reply mode
+            </legend>
+            <div className="flex gap-2">
+              {(['standard', 'voice_to_voice'] as ReplyMode[]).map((mode) => (
+                <Button
+                  key={mode}
+                  type="button"
+                  variant={persona.replyMode === mode ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setReplyMode(mode)}
+                  disabled={isConnecting}
+                >
+                  {replyModeLabel(mode)}
+                </Button>
+              ))}
+            </div>
+            <p className="text-muted-foreground mt-2 text-[11px] leading-4">
+              Voice-to-voice needs Realtime credentials; otherwise the agent falls back to standard
+              with a visible warning.
+            </p>
+          </fieldset>
         </div>
 
         <Button
           size="lg"
           onClick={onStartCall}
-          disabled={isConnecting}
+          disabled={isConnecting || !secure.ok}
           className="w-full max-w-xs rounded-full font-mono text-xs font-bold tracking-wider uppercase"
         >
           {isConnecting ? 'Connecting…' : startButtonText}
         </Button>
 
         <p className="text-muted-foreground mt-6 max-w-prose text-xs leading-5">
-          Allow the microphone when prompted. Agent logs stream in the{' '}
-          <code className="font-mono">./start_app.sh</code> terminal.
+          Open <code className="font-mono">http://localhost:3000</code>, allow the microphone when
+          prompted. Agent logs stream in the <code className="font-mono">./start_app.sh</code>{' '}
+          terminal.
         </p>
 
         <ConversationHistory refreshKey={historyRefreshKey} />
