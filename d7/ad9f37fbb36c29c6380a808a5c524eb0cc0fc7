@@ -1,0 +1,23 @@
+agent/src/adapters/livekit_bridge.py
+  s_d91e6c3870d55f::t_5484dbca291595 100,108,113,115,118-123,125-126,129,131,147-148,156
+agent/src/tools/computer_use.py
+  s_d91e6c3870d55f::t_265222b856eff7 41,49,52,54-55,60-66,73,75,78,87
+agent/src/graph/prompts.py
+  s_d91e6c3870d55f::t_054da180ae7a7c 30-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d7ad9f37fbb36c29c6380a808a5c524eb0cc0fc7",
+  "prompts": {},
+  "sessions": {
+    "s_d91e6c3870d55f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0bb681f1-bbd0-4190-9298-8a4d921984fc",
+        "model": "auto-smart"
+      },
+      "human_author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    }
+  }
+}
