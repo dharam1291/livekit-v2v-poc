@@ -1,12 +1,40 @@
 import pytest
-from livekit.plugins.openai.tts import AudioChunkedStream
 
 from adapters.config import AgentConfig
+from adapters.eou import build_turn_handling
 from adapters.livekit_bridge import GraphBackedAssistant, create_assistant
-from adapters.speech_llm import SpeachesTTS, build_tts
+from adapters.mic_gate import apply_user_mic_muted
+from adapters.speech_llm import SpeachesAudioChunkedStream, SpeachesTTS, build_tts
 from agent import AGENT_NAME
 from graph.graph import greeting_text
 from tools.weather import lookup_weather
+
+
+class _FakeInput:
+    def __init__(self) -> None:
+        self.audio_enabled = True
+
+    def set_audio_enabled(self, enabled: bool) -> None:
+        self.audio_enabled = enabled
+
+
+class _FakeSession:
+    def __init__(self) -> None:
+        self.input = _FakeInput()
+        self.cleared = 0
+
+    def clear_user_turn(self) -> None:
+        self.cleared += 1
+
+
+def test_apply_user_mic_muted_pauses_input_and_clears_turn() -> None:
+    session = _FakeSession()
+    apply_user_mic_muted(session, muted=True)  # type: ignore[arg-type]
+    assert session.input.audio_enabled is False
+    assert session.cleared == 1
+    apply_user_mic_muted(session, muted=False)  # type: ignore[arg-type]
+    assert session.input.audio_enabled is True
+    assert session.cleared == 1
 
 
 def _sample_config(**overrides: object) -> AgentConfig:
@@ -66,4 +94,11 @@ async def test_build_tts_uses_speaches_binary_stream() -> None:
     tts = build_tts(_sample_config())
     assert isinstance(tts, SpeachesTTS)
     stream = tts.synthesize("Hello from the POC.")
-    assert isinstance(stream, AudioChunkedStream)
+    assert isinstance(stream, SpeachesAudioChunkedStream)
+
+
+def test_turn_handling_uses_local_vad() -> None:
+    th = build_turn_handling(_sample_config())
+    assert th["turn_detection"] == "vad"
+    assert th["interruption"]["mode"] == "vad"
+    assert "min_delay" in th["endpointing"]

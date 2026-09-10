@@ -70,6 +70,7 @@ export function useInputControls({
   onDeviceError,
 }: UseInputControlsProps = {}): UseInputControlsReturn {
   const {
+    room,
     local: { microphoneTrack },
   } = useSessionContext();
 
@@ -123,11 +124,29 @@ export function useInputControls({
 
   const handleToggleMicrophone = useCallback(
     async (enabled?: boolean) => {
-      await microphoneToggle.toggle(enabled);
-      // persist audio input enabled preference
-      saveAudioInputEnabled(!microphoneToggle.enabled);
+      const local = room?.localParticipant;
+      const next =
+        typeof enabled === 'boolean'
+          ? enabled
+          : !(local?.isMicrophoneEnabled ?? microphoneToggle.enabled);
+
+      // Prefer the room API so mute/unmute always publishes TrackMuted to the agent.
+      if (local) {
+        await local.setMicrophoneEnabled(next);
+      } else {
+        await microphoneToggle.toggle(next);
+      }
+
+      // Belt-and-suspenders: stop the underlying MediaStreamTrack while muted.
+      const pub = local?.getTrackPublication(Track.Source.Microphone);
+      const media = pub?.track?.mediaStreamTrack;
+      if (media) {
+        media.enabled = next;
+      }
+
+      saveAudioInputEnabled(next);
     },
-    [microphoneToggle, saveAudioInputEnabled]
+    [room, microphoneToggle, saveAudioInputEnabled]
   );
 
   const handleToggleScreenShare = useCallback(

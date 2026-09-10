@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from graph.prompts import GREETING_FALLBACK_TEXT
+from graph.prompts import greeting_fallback_for
 from graph.state import AgentGraphState
 
 
 def greeting_node(state: AgentGraphState) -> dict[str, Any]:
     """Emit greeting text without requiring a prior user utterance."""
-    text = GREETING_FALLBACK_TEXT
+    text = greeting_fallback_for(state.get("session_language"))
     return {
         "should_greet": False,
         "last_agent_text": text,
