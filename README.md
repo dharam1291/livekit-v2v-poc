@@ -125,7 +125,7 @@ livekit-v2v-poc/
   start_app.sh           # ← only command you need to start everything
   docker-compose.yml     # LiveKit + Speaches + Jaeger
   docs/                  # Architecture diagram + notes
-  agent/                 # LiveKit Agents + LangGraph
+  agent/                 # LiveKit Agents + LangGraph (see agent/README.md)
     .env.example         # agent env template
     src/agent.py
     src/graph/
