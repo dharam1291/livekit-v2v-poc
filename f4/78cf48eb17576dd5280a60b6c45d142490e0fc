@@ -1,0 +1,198 @@
+specs/003-demo-ready-v2v/contracts/session-persona-and-mode.md
+  s_655cd5d1cb6052::t_0ef8db580fe86f 1-60
+agent/src/adapters/config.py
+  s_655cd5d1cb6052::t_7ddfc95f78d514 7-9,27-31,34-42,81-85,92-93
+  s_655cd5d1cb6052::t_b382bfa8c8da6e 90-91
+  s_655cd5d1cb6052::t_60d720c9e665d5 32-33
+  s_655cd5d1cb6052::t_3b777ac675a662 86-89
+  s_655cd5d1cb6052::t_b4e2fc0eb714ab 45-50
+  s_655cd5d1cb6052::t_44a539c7fe423c 43-44
+agent/src/adapters/speech_llm.py
+  s_655cd5d1cb6052::t_1f58965e75190d 93-94,99
+  s_655cd5d1cb6052::t_6244b5c0e4b6c0 6,8-11,27-74,79,87-90
+  s_655cd5d1cb6052::t_a277279f58f294 20
+  s_655cd5d1cb6052::t_d4b8a23e9164f9 12-16,19
+README.md
+  s_655cd5d1cb6052::t_66b4e3c6aff07b 143
+  s_655cd5d1cb6052::t_997878b6dfc17c 18-19,21
+  s_655cd5d1cb6052::t_e7932cd92a1c9f 82-83
+  s_655cd5d1cb6052::t_3ba3ac92ec6ad9 62
+  s_655cd5d1cb6052::t_cbda9e8709517d 97
+  s_655cd5d1cb6052::t_128ef0c019db90 84-89,91-96,98-100
+web/components/app/welcome-view.tsx
+  s_655cd5d1cb6052::t_41f34d417f61dd 6-7
+  s_655cd5d1cb6052::t_fa29189cb44cbb 90-107
+  s_655cd5d1cb6052::t_a8d44688a1e65a 162-186
+  s_655cd5d1cb6052::t_7b4a546f5b8f29 192,199-201
+  s_655cd5d1cb6052::t_79e88b306ca4a5 3,21-33,46
+  s_655cd5d1cb6052::t_32eaaad722fd93 51-52
+agent/pyproject.toml
+  s_655cd5d1cb6052::t_be9397d3d33138 15-17
+agent/tests/test_agent.py
+  s_655cd5d1cb6052::t_ba07d779413219 6,13-37
+  s_655cd5d1cb6052::t_8f99d718fcad07 4,97-104
+  s_655cd5d1cb6052::t_919f0b1adb8fa7 7
+  s_655cd5d1cb6052::t_f8ed2bb3061f1a 38-39
+agent/src/adapters/mic_gate.py
+  s_655cd5d1cb6052::t_1af8b6c1608df3 5,32
+  s_655cd5d1cb6052::t_b90e6af2fe32e6 1-4,6-31,33-65
+specs/003-demo-ready-v2v/contracts/wait-feedback.md
+  s_655cd5d1cb6052::t_7efb4da4341bc5 1-27
+agent/src/graph/prompts.py
+  s_655cd5d1cb6052::t_088322a62c7ad7 7-12,51-91
+specs/003-demo-ready-v2v/contracts/reply-modes.md
+  s_655cd5d1cb6052::t_bb85dea8a70043 1-55
+.gitignore
+  s_655cd5d1cb6052::t_879ee6a52531f8 26
+specs/003-demo-ready-v2v/plan.md
+  s_655cd5d1cb6052::t_bdde4fbb8e4ec4 2,4,6-10,12-14,16,18,20,22,24,26,28,30,32-36,45,48-52,66-70,105-106,108-112
+  s_655cd5d1cb6052::t_c707fdc5215aca 1,3,5,11,15,17,19,21,23,25,27,29,31,37-44,46-47,53-65,71-104,107,113-115
+agent/src/adapters/tracing.py
+  s_655cd5d1cb6052::t_dae145b8889c2d 2-12,15-21,23,30,32-40,42-61,82-93,97-139
+  s_655cd5d1cb6052::t_22bbaccaa67f42 1,13-14,22,24-29,31,41,62-81,94-96
+web/app/api/token/route.ts
+  s_655cd5d1cb6052::t_68003472402f28 17-18,40-50,54,73,77-79,114,122
+web/lib/session-persona.ts
+  s_655cd5d1cb6052::t_26f2600cad3de8 5-6,10,16-20,32-42,48,57,60-62
+  s_655cd5d1cb6052::t_52ff8b945e8c82 63
+web/.env.example
+  s_655cd5d1cb6052::t_0ed8dda44d492f 12-14
+  s_655cd5d1cb6052::t_389868e494cacf 9-11
+web/components/agents-ui/blocks/agent-session-view-01/components/agent-session-block.tsx
+  s_a7e7f414ac7f14::t_7c7ad4177230fe 3,5,16,19-27,34-38,113,126,141-228,246-258,320-321,324-337,339,341,377-389
+agent/src/adapters/otel_setup.py
+  s_655cd5d1cb6052::t_fbc5b8c18945ba 1-72
+web/hooks/agents-ui/use-agent-control-bar.ts
+  s_655cd5d1cb6052::t_d583bc670e490e 73
+  s_655cd5d1cb6052::t_6119d944016d44 127-147,149
+web/lib/wait-sound.ts
+  s_655cd5d1cb6052::t_62d88489cb784f 2-3,6-8,11,13-17,19,24-25,27-28,39-42
+docker-compose.yml
+  s_655cd5d1cb6052::t_88f5c7f0eee8b7 24-35
+specs/003-demo-ready-v2v/contracts/session-traces.md
+  s_655cd5d1cb6052::t_79038afa8bbde7 1-52,57-60,64-70
+  s_655cd5d1cb6052::t_f96e0bda1c1e18 53-56,61-63
+agent/src/adapters/voice_map.py
+  s_655cd5d1cb6052::t_6f146afc513f2e 1,24-29,65-75
+agent/src/adapters/eou.py
+  s_655cd5d1cb6052::t_6e54209c87c4d0 18-24,27
+  s_655cd5d1cb6052::t_03f1735b0ffacd 1-17,25-26,28-36
+specs/003-demo-ready-v2v/tasks.md
+  s_655cd5d1cb6052::t_602f258d9a3a15 1-10,12-30,34-42,50-62,68-80,84-96,109-121,127-135,141-222,224
+  s_655cd5d1cb6052::t_855dba8c990c49 31-33,43-49,63-67,81-83,97-108,122-126,136-140
+  s_655cd5d1cb6052::t_99c7b9127729f2 11
+  s_655cd5d1cb6052::t_dbad34d153d713 223
+web/lib/session-traces.ts
+  s_655cd5d1cb6052::t_f3e2e6c3dbc1d2 1-37
+web/components/app/view-controller.tsx
+  s_655cd5d1cb6052::t_fff12b16954cec 153
+agent/.env.example
+  s_655cd5d1cb6052::t_9060ba8db95b19 18,21-23
+  s_655cd5d1cb6052::t_96b6531d9c0420 9-17,19-20,24,31,43-44
+agent/src/adapters/persona.py
+  s_655cd5d1cb6052::t_61b7de0979ffd6 1-99
+agent/tests/test_prompts.py
+  s_655cd5d1cb6052::t_1bc02c35db4ea0 1,3-4,9-10,25-67
+specs/003-demo-ready-v2v/research.md
+  s_655cd5d1cb6052::t_7dfb17ed16a804 1-120
+agent/src/agent.py
+  s_655cd5d1cb6052::t_d4b8a23e9164f9 62,195,257
+  s_655cd5d1cb6052::t_58296b19186537 40-45
+  s_655cd5d1cb6052::t_ade1fa3b460d88 237-238
+  s_655cd5d1cb6052::t_6caf0a1aa638d7 21
+  s_655cd5d1cb6052::t_85882175336771 22
+  s_655cd5d1cb6052::t_4741c13e693ce6 229-231,236
+  s_655cd5d1cb6052::t_df6456238c6229 19,23-27,29-30,56-61,63-96,105-149,151-160,163-168,171-177,181-194,196-222,240-256,258,262-266
+  s_655cd5d1cb6052::t_041cb123f58311 239
+agent/src/adapters/livekit_bridge.py
+  s_655cd5d1cb6052::t_ccd67efed9e499 12,22-28,31-32,74-77,89-94
+specs/003-demo-ready-v2v/data-model.md
+  s_655cd5d1cb6052::t_a1a6dfb354635c 1-118
+agent/src/adapters/realtime_speech.py
+  s_655cd5d1cb6052::t_cc6b7fc73176be 1-70
+web/components/app/session-trace-panel.tsx
+  s_655cd5d1cb6052::t_e63bb230dcc27d 6-9,29,31-41,46,49-60
+  s_655cd5d1cb6052::t_93e989b89e9404 1-5,10-28,30,42-45,47-48,61-73
+specs/003-demo-ready-v2v/spec.md
+  s_655cd5d1cb6052::t_e2e1581ed7bfbf 68
+  s_655cd5d1cb6052::t_bfb2b6bf2b4107 18
+  s_655cd5d1cb6052::t_3fe07419d018b4 132
+  s_655cd5d1cb6052::t_7330e549c2bc61 11-15,19
+  s_655cd5d1cb6052::t_e5c97774550d49 16
+  s_655cd5d1cb6052::t_bbd8adfc6f26ea 81
+  s_655cd5d1cb6052::t_3f2badb8260d9d 128
+  s_655cd5d1cb6052::t_1846eaa46556ec 162
+  s_655cd5d1cb6052::t_7d5612362669c3 1,3,5,9,22,24,26,28,32-35,39,41,43,45,49-52,56,58,60,62,66-67,79,83,85,87,91-92,96,98,101-105,108,110,112,114-118,129-131,133,135-137,144-145,147-149,153-155,157-159,163-164,166-172
+  s_655cd5d1cb6052::t_cde414bb9371f0 146
+  s_655cd5d1cb6052::t_a95ec2004733b1 165
+  s_655cd5d1cb6052::t_3b86218b81714e 74-75
+  s_655cd5d1cb6052::t_48c588adca7ceb 138
+  s_655cd5d1cb6052::t_1f13c4a719fb97 119,121
+  s_655cd5d1cb6052::t_b0d9da91da56ff 124-125
+  s_655cd5d1cb6052::t_c4ae7804ba14f7 93
+  s_655cd5d1cb6052::t_39265fada43bd5 70-73
+  s_655cd5d1cb6052::t_ff7f952ac0f6db 100
+  s_655cd5d1cb6052::t_98d59d0139d448 2,4,6-8,10,20-21,23,25,27,29-31,36-38,40,42,44,46-48,53-55,57,59,61,63-65,76-78,80,82,84,86,88,95,97,99,109,111,113,139-143,150-152
+  s_655cd5d1cb6052::t_d36e8a1de0419a 120,122-123,126-127
+  s_655cd5d1cb6052::t_a56ecf343bdca5 156
+  s_655cd5d1cb6052::t_ebfddb3ba1d08d 17
+  s_655cd5d1cb6052::t_697a3864558d73 89-90,94
+  s_655cd5d1cb6052::t_c43c111c8fae9d 134
+  s_655cd5d1cb6052::t_65220da016173c 106
+  s_655cd5d1cb6052::t_a0fdbf6b960fd4 160-161
+  s_655cd5d1cb6052::t_f2126fd02e5057 69
+  s_655cd5d1cb6052::t_01188b06790215 107
+agent/src/graph/state.py
+  s_655cd5d1cb6052::t_2cf9630f72b98d 23-27,42-45
+specs/003-demo-ready-v2v/checklists/requirements.md
+  s_655cd5d1cb6052::t_9c8372fbb3a515 16,34-35
+  s_655cd5d1cb6052::t_612e1cd5b20768 1-15,17-33
+  s_655cd5d1cb6052::t_e120b0e144d57d 36
+agent/src/graph/nodes.py
+  s_655cd5d1cb6052::t_53492de0ba1e7a 7,13
+start_app.sh
+  s_655cd5d1cb6052::t_7beeab5651401c 3
+  s_655cd5d1cb6052::t_19157fc648cd68 325,338
+  s_655cd5d1cb6052::t_0dae40fdebed4a 402,410
+  s_655cd5d1cb6052::t_5b855ff8eb7fc6 371-373
+  s_655cd5d1cb6052::t_89b8790a3b15fc 399,408-409
+  s_655cd5d1cb6052::t_ab5868f4002e10 14-15
+specs/003-demo-ready-v2v/quickstart.md
+  s_655cd5d1cb6052::t_1d0b29108bae4e 30-31
+  s_655cd5d1cb6052::t_2ec041a6569a69 1-25,34-106
+  s_655cd5d1cb6052::t_20ffaafcedde4a 26-29,32-33
+specs/README.md
+  s_655cd5d1cb6052::t_a5921a50da01f4 16-17
+  s_655cd5d1cb6052::t_547f392770d39e 10
+agent/uv.lock
+  s_655cd5d1cb6052::t_c76b8cc361a9e6 22-24,40-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f478cf48eb17576dd5280a60b6c45d142490e0fc",
+  "prompts": {},
+  "humans": {
+    "h_43898d1486641f": {
+      "author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_655cd5d1cb6052": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bf382d11-ac9a-439e-90b4-f26962f57450",
+        "model": "auto-smart"
+      },
+      "human_author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    },
+    "s_a7e7f414ac7f14": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "02296d49-13d3-4ce4-9402-1910d5ca5be7",
+        "model": "default"
+      },
+      "human_author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    }
+  }
+}
