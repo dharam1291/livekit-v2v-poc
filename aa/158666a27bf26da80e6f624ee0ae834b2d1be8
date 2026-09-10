@@ -1,0 +1,54 @@
+agent/src/adapters/config.py
+  s_655cd5d1cb6052::t_4fcc640433af66 36
+  s_655cd5d1cb6052::t_e0e419cccc2207 95
+agent/src/adapters/speech_llm.py
+  s_655cd5d1cb6052::t_d0c8689bf0a747 28-32,46,60-61,65-66,81,159,169
+agent/tests/test_agent.py
+  s_655cd5d1cb6052::t_912d87d3b8bb64 7-11
+  s_655cd5d1cb6052::t_52e070340643c3 35,39-40
+  s_655cd5d1cb6052::t_cc2305f638e783 111-138
+agent/src/adapters/mic_gate.py
+  s_655cd5d1cb6052::t_606134968c6d38 27-33,38,40,44
+agent/src/adapters/realtime_speech.py
+  s_655cd5d1cb6052::t_66f1ec2b1b0062 7,9,16-22,44-74,80-95,105,107,111,117
+  s_655cd5d1cb6052::t_fca0cbe7236ccf 75-79
+README.md
+  s_655cd5d1cb6052::t_b5b4bac155b753 88,91
+  s_655cd5d1cb6052::t_cfaecc68d36918 121-122,126-127
+  s_655cd5d1cb6052::t_c032ad8ef763d3 92
+web/hooks/agents-ui/use-agent-control-bar.ts
+  s_655cd5d1cb6052::t_dd97031c9eb5ff 127-129,134
+  s_655cd5d1cb6052::t_480d5ca7dec63d 130,133
+agent/src/agent.py
+  s_655cd5d1cb6052::t_a23a367845bffa 26
+  s_655cd5d1cb6052::t_720e6b2cc676d1 128-129
+agent/.env.example
+  s_655cd5d1cb6052::t_764a2ff2e76975 45-48
+docs/architecture.md
+  s_655cd5d1cb6052::t_25a880db6a345c 3
+  s_655cd5d1cb6052::t_60307875c97606 7-25,27-54,58-66,69-80,83-87,90-93,96-101,103-104,106-111,119-125
+  s_655cd5d1cb6052::t_205ccce941335e 1-2,26,55-57,67-68,81-82,88-89,94-95,102,105,112-118
+  s_655cd5d1cb6052::t_f1bb00682635b1 4
+  s_655cd5d1cb6052::t_ff658a20841d58 5-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "aa158666a27bf26da80e6f624ee0ae834b2d1be8",
+  "prompts": {},
+  "humans": {
+    "h_43898d1486641f": {
+      "author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_655cd5d1cb6052": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bf382d11-ac9a-439e-90b4-f26962f57450",
+        "model": "auto-smart"
+      },
+      "human_author": "Dharmendra Singh <dharmendra.singh1291@gmail.com>"
+    }
+  }
+}
